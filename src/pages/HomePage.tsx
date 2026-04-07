@@ -1,58 +1,53 @@
 import { Link } from 'react-router-dom'
 
-const serviceTracks = [
+const capabilities = [
   {
-    title: 'AI Workflow Design',
+    title: 'AI workflow design',
     description:
-      'Map where automation creates actual margin, then build the workflow layer around it.',
+      'Map the handoffs, bottlenecks, and repetitive decisions that should be automated first.',
   },
   {
-    title: 'Client Portal Systems',
+    title: 'Private client portals',
     description:
-      'Create private spaces for proposals, PDFs, approvals, delivery packs and project files.',
+      'Create a secure surface for proposals, PDFs, statements of work, approvals, and delivery material.',
   },
   {
-    title: 'Product And Ops Builds',
+    title: 'Internal tools and delivery systems',
     description:
-      'Ship internal tools, external products and service infrastructure without dragging in enterprise weight.',
+      'Build the operating layer behind premium services so teams can move faster without looking improvised.',
   },
-]
-
-const deliveryRhythm = [
-  {
-    step: 'Signal',
-    description:
-      'Start from the operational bottleneck, messy handoff or commercial friction point.',
-  },
-  {
-    step: 'Structure',
-    description:
-      'Turn that into a real system shape: portal, workflow, product surface or document flow.',
-  },
-  {
-    step: 'Ship',
-    description:
-      'Move quickly into something a team or client can actually use, not just review.',
-  },
-  {
-    step: 'Scale',
-    description:
-      'Make the system repeatable so delivery gets cleaner as work volume grows.',
-  },
-]
-
-const platformMarks = [
-  'Private document spaces',
-  'Proposal and SOW delivery',
-  'AI-assisted workflows',
-  'Operational buildouts',
 ]
 
 const portalSignals = [
-  'Per-client access control',
-  'Hosted PDFs and supporting files',
-  'Scope, line items and milestones',
-  'Approval and revision handoff',
+  'Per-client authentication',
+  'Hosted PDFs and project files',
+  'Scope, milestones, and commercial detail',
+  'Clear next steps and approval routes',
+]
+
+const principles = [
+  {
+    title: 'Minimal outside',
+    description:
+      'The interface should feel calm, assured, and expensive rather than overloaded with components.',
+  },
+  {
+    title: 'Serious underneath',
+    description:
+      'The product layer still has to solve authentication, file access, workflow structure, and delivery friction.',
+  },
+  {
+    title: 'Built for use',
+    description:
+      'Everything should help a client move through a project more clearly, not just admire the site.',
+  },
+]
+
+const ledgerItems = [
+  'Private portals',
+  'PDF delivery',
+  'AI-assisted workflow',
+  'Operational software',
 ]
 
 export function HomePage() {
@@ -60,15 +55,15 @@ export function HomePage() {
     <div className="page-shell">
       <header className="site-header container">
         <Link className="brand-lockup" to="/">
-          <span className="brand-mark">ND</span>
+          <span aria-hidden="true" className="brand-mark" />
           <span className="brand-copy">
-            <strong>Noventis Digital</strong>
-            <span>Digital systems, client portals and AI workflow delivery</span>
+            <strong>NOVENTIS</strong>
+            <span>Digital systems and client infrastructure</span>
           </span>
         </Link>
 
-        <nav className="top-nav" aria-label="Primary">
-          <a href="#services">Services</a>
+        <nav aria-label="Primary" className="top-nav">
+          <a href="#services">Capabilities</a>
           <a href="#portal">Portal</a>
           <a href="#approach">Approach</a>
         </nav>
@@ -81,151 +76,132 @@ export function HomePage() {
             hello@noventisdigital.co.uk
           </a>
           <Link className="primary-button" to="/portal">
-            Client portal
+            Open portal
           </Link>
         </div>
       </header>
 
       <main>
-        <section className="hero-section container">
-          <div className="hero-grid hero-grid--kinetic">
-            <div className="hero-copy">
-              <p className="eyebrow">Digital infrastructure for service-led businesses</p>
-              <h1>Sharper systems. Better delivery. A client area that feels built, not improvised.</h1>
-              <p className="hero-text">
-                Noventis Digital creates private portals, AI-enabled workflows and
-                commercial operating systems for businesses that need clearer
-                delivery and stronger client-facing experiences.
-              </p>
+        <section className="hero-section hero-section--glass">
+          <div className="container hero-column">
+            <p className="eyebrow">AI systems, client portals, delivery infrastructure</p>
+            <h1>Operational software for businesses that sell expertise.</h1>
+            <p className="hero-text">
+              Noventis Digital builds the layer behind premium client work:
+              private portals, AI-enabled workflows, and internal tools that make
+              delivery cleaner, faster, and more defensible.
+            </p>
 
-              <div className="hero-actions">
-                <a
-                  className="primary-button"
-                  href="mailto:hello@noventisdigital.co.uk?subject=Project%20enquiry"
-                >
-                  Start a project
-                </a>
-                <Link className="ghost-button" to="/portal">
-                  Open the portal
-                </Link>
-              </div>
-
-              <div className="hero-metrics" aria-label="Platform focus">
-                {platformMarks.map((item) => (
-                  <div className="metric-card" key={item}>
-                    <span className="metric-dot" />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="hero-actions">
+              <a
+                className="primary-button"
+                href="mailto:hello@noventisdigital.co.uk?subject=Project%20enquiry"
+              >
+                Start a conversation
+              </a>
+              <Link className="ghost-button" to="/portal">
+                View client portal
+              </Link>
             </div>
 
-            <div className="hero-stack hero-stack--kinetic">
-              <article className="panel-card signal-card signal-card--wide">
-                <p className="card-label">What sits inside the portal</p>
-                <h2>Proposal packs, statements of work, delivery notes and live project material.</h2>
-                <p>
-                  The client area is built to handle real files and structured project
-                  detail, not just a list of prices.
-                </p>
-              </article>
-
-              <div className="signal-board">
-                <div className="signal-board-header">
-                  <span className="status-pill is-emerald">System map</span>
-                  <span>Client-facing layer</span>
-                </div>
-
-                <div className="signal-grid">
-                  <div className="signal-node">Access</div>
-                  <div className="signal-node">Documents</div>
-                  <div className="signal-node">Approvals</div>
-                  <div className="signal-node">Delivery</div>
-                </div>
-
-                <div className="signal-rail">
-                  <span>Proposal PDF</span>
-                  <span>Statement of work</span>
-                  <span>Project pack</span>
-                </div>
-              </div>
+            <div aria-label="Core offer" className="hero-ledger">
+              {ledgerItems.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="section container">
-          <div className="velocity-strip" aria-label="Operating focus">
-            <span>Portals</span>
-            <span>Automation</span>
-            <span>Documents</span>
-            <span>Workflow</span>
-            <span>Delivery</span>
-            <span>Systems</span>
+        <section className="section container intro-section">
+          <div className="intro-grid">
+            <div>
+              <p className="eyebrow">What Noventis builds</p>
+              <h2>Not brochure sites. Working systems.</h2>
+            </div>
+
+            <div className="body-stack">
+              <p>
+                The problem is rarely the service itself. It is usually the
+                surface clients move through: proposal delivery, scattered files,
+                weak approval flows, inconsistent handover, or internal process
+                held together with email and memory.
+              </p>
+              <p>
+                Noventis Digital focuses on that layer. The outcome is a cleaner
+                client experience and a more deliberate operating model behind it.
+              </p>
+            </div>
           </div>
         </section>
 
         <section className="section container" id="services">
           <div className="section-heading">
-            <p className="eyebrow">Services</p>
-            <h2>Three places Noventis Digital creates the most leverage</h2>
-            <p>
-              The work sits where commercial flow, software and delivery structure
-              overlap. The result is usually a clearer client experience and a
-              stronger internal operating model.
-            </p>
+            <p className="eyebrow">Capabilities</p>
+            <h2>Three areas where better software changes the quality of delivery.</h2>
           </div>
 
-          <div className="service-grid">
-            {serviceTracks.map((track) => (
-              <article className="service-card service-card--kinetic" key={track.title}>
-                <h3>{track.title}</h3>
-                <p>{track.description}</p>
+          <div className="capability-list">
+            {capabilities.map((capability, index) => (
+              <article className="capability-row" key={capability.title}>
+                <span className="capability-index">{`0${index + 1}`}</span>
+                <div>
+                  <h3>{capability.title}</h3>
+                  <p>{capability.description}</p>
+                </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="section container portal-preview-section" id="portal">
-          <div className="portal-showcase portal-showcase--kinetic">
-            <div className="section-heading">
-              <p className="eyebrow">Portal layer</p>
-              <h2>Move beyond static proposals and give clients a proper working surface.</h2>
+        <section className="section container" id="portal">
+          <div className="portal-frame">
+            <div className="portal-frame-copy">
+              <p className="eyebrow">Client workspace</p>
+              <h2>A private surface for proposals, PDFs, statements of work, and delivery material.</h2>
               <p>
-                The portal is designed to hold the full project pack: pricing,
-                milestones, proposal PDFs, statements of work and revision context.
+                Instead of scattering documents across inboxes, the portal gives
+                each client a single authenticated place to review project
+                material and respond cleanly.
               </p>
-            </div>
 
-            <div className="showcase-panel showcase-panel--document">
-              <div className="showcase-header">
-                <span className="status-pill is-emerald">Document-ready</span>
-                <span>What clients can access</span>
-              </div>
-
-              <ul className="showcase-list">
+              <ul className="signal-list">
                 {portalSignals.map((signal) => (
                   <li key={signal}>{signal}</li>
                 ))}
               </ul>
 
-              <div className="document-stack">
-                <div className="document-chip">
-                  <strong>PDF</strong>
-                  <span>Proposal / SOW</span>
-                </div>
-                <div className="document-chip">
-                  <strong>LINK</strong>
-                  <span>Approval action</span>
-                </div>
-                <div className="document-chip">
-                  <strong>PACK</strong>
-                  <span>Delivery notes</span>
-                </div>
+              <Link className="primary-button" to="/portal">
+                Enter the portal
+              </Link>
+            </div>
+
+            <div className="portal-preview">
+              <div className="preview-topline">
+                <span>Client portal</span>
+                <span>Live documents</span>
               </div>
 
-              <Link className="primary-button full-width-button" to="/portal">
-                Enter the client portal
-              </Link>
+              <div className="preview-surface">
+                <div className="preview-document-list">
+                  <button className="preview-document is-active" type="button">
+                    Watson proposal PDF
+                  </button>
+                  <button className="preview-document" type="button">
+                    Statement of work
+                  </button>
+                  <button className="preview-document" type="button">
+                    Delivery notes
+                  </button>
+                </div>
+
+                <div className="preview-canvas">
+                  <div className="preview-sheet">
+                    <span className="preview-sheet-label">PDF</span>
+                    <strong>Watson Proposal SOW</strong>
+                    <p>Commercial scope, timing, and delivery structure in one hosted document.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -233,35 +209,32 @@ export function HomePage() {
         <section className="section container" id="approach">
           <div className="section-heading">
             <p className="eyebrow">Approach</p>
-            <h2>Built for operators who need movement, not theatre.</h2>
+            <h2>Minimal externally. Serious under the hood.</h2>
           </div>
 
-          <div className="process-grid process-grid--wide">
-            {deliveryRhythm.map((item) => (
-              <article className="process-card process-card--kinetic" key={item.step}>
-                <span className="step-chip">{item.step}</span>
-                <p>{item.description}</p>
+          <div className="principle-grid">
+            {principles.map((principle) => (
+              <article className="principle-card" key={principle.title}>
+                <h3>{principle.title}</h3>
+                <p>{principle.description}</p>
               </article>
             ))}
           </div>
         </section>
 
         <section className="section container">
-          <div className="cta-banner cta-banner--kinetic">
-            <div>
-              <p className="eyebrow">Next move</p>
-              <h2>Use the site as the front door and the portal as the working layer.</h2>
-            </div>
-
-            <div className="cta-actions">
+          <div className="closing-block">
+            <p className="eyebrow">Contact</p>
+            <h2>If the service is premium, the operating layer should be too.</h2>
+            <div className="hero-actions">
               <a
-                className="ghost-button"
+                className="primary-button"
                 href="mailto:hello@noventisdigital.co.uk?subject=Portal%20and%20systems%20project"
               >
-                Email Noventis
+                hello@noventisdigital.co.uk
               </a>
-              <Link className="primary-button" to="/portal">
-                Open portal
+              <Link className="ghost-button" to="/portal">
+                Open client portal
               </Link>
             </div>
           </div>
@@ -269,7 +242,7 @@ export function HomePage() {
       </main>
 
       <footer className="site-footer container">
-        <p>Noventis Digital</p>
+        <p>NOVENTIS DIGITAL</p>
         <div className="footer-links">
           <a href="mailto:hello@noventisdigital.co.uk">hello@noventisdigital.co.uk</a>
           <Link to="/portal">Client portal</Link>

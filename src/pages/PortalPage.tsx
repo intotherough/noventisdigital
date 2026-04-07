@@ -44,8 +44,12 @@ export function PortalPage({
   onLogin,
   onLogout,
 }: PortalPageProps) {
-  const [email, setEmail] = useState(demoCredentials[0]?.email ?? '')
-  const [password, setPassword] = useState(demoCredentials[0]?.password ?? '')
+  const [email, setEmail] = useState(
+    portalMode === 'demo' ? (demoCredentials[0]?.email ?? '') : '',
+  )
+  const [password, setPassword] = useState(
+    portalMode === 'demo' ? (demoCredentials[0]?.password ?? '') : '',
+  )
   const [localError, setLocalError] = useState<string | null>(null)
   const [authPending, setAuthPending] = useState(false)
   const [signOutPending, setSignOutPending] = useState(false)
@@ -118,9 +122,9 @@ export function PortalPage({
     <div className="portal-shell">
       <header className="portal-header container">
         <Link className="brand-lockup" to="/">
-          <span className="brand-mark">ND</span>
+          <span aria-hidden="true" className="brand-mark" />
           <span className="brand-copy">
-            <strong>Noventis Digital</strong>
+            <strong>NOVENTIS</strong>
             <span>Private client workspace</span>
           </span>
         </Link>
@@ -148,10 +152,10 @@ export function PortalPage({
           <section className="portal-login-grid portal-login-grid--kinetic">
             <div className="portal-login-side">
               <p className="eyebrow">Private client access</p>
-              <h1>A portal for proposals, PDFs and delivery material.</h1>
+              <h1>Private project material. One secure surface.</h1>
               <p>
-                Clients sign in once and get a single private place to review
-                project detail, supporting documents and next-step actions.
+                The portal is designed for proposals, PDFs, statements of work,
+                and delivery notes without the usual email sprawl.
               </p>
 
               <div className="portal-value-list">
