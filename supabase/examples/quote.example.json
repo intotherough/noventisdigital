@@ -1,0 +1,50 @@
+{
+  "title": "AI workflow audit and delivery sprint",
+  "summary": "A focused engagement to map the current delivery process and ship a usable first workflow.",
+  "status": "Awaiting approval",
+  "valid_until": "2026-04-30",
+  "timeline": "3 weeks",
+  "notes": "Includes one review round and implementation handover.",
+  "contact_email": "hello@noventisdigital.co.uk",
+  "scope": [
+    "Current workflow review",
+    "Automation shortlist",
+    "Prototype delivery",
+    "Implementation notes"
+  ],
+  "line_items": [
+    {
+      "name": "Discovery and systems mapping",
+      "description": "Interviews, workflow review and leverage assessment.",
+      "amount": 1200
+    },
+    {
+      "name": "Prototype build",
+      "description": "A working AI-assisted workflow connected to your current stack.",
+      "amount": 2100
+    },
+    {
+      "name": "Implementation support",
+      "description": "Testing, iteration and handover.",
+      "amount": 1500
+    }
+  ],
+  "milestones": [
+    {
+      "label": "Workflow review complete",
+      "due": "2026-04-12",
+      "status": "done"
+    },
+    {
+      "label": "Prototype approved",
+      "due": "2026-04-19",
+      "status": "current"
+    },
+    {
+      "label": "Delivery handover",
+      "due": "2026-04-26",
+      "status": "next"
+    }
+  ],
+  "total_amount": 4800
+}

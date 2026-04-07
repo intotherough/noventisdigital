@@ -9,7 +9,9 @@
     "lint": "eslint src",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "client:create": "node scripts/create-client.mjs",
+    "quote:upsert": "node scripts/upsert-quote.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.1",

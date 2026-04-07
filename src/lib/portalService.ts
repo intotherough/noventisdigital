@@ -30,6 +30,14 @@ type QuoteRow = {
   total_amount: number | null
 }
 
+type ClientProfileRow = {
+  id: string
+  email: string | null
+  full_name: string | null
+  company: string | null
+  role: string | null
+}
+
 export const portalMode: PortalMode = hasSupabase ? 'live' : 'demo'
 
 function deriveNameFromEmail(email: string | undefined) {
@@ -46,7 +54,7 @@ function deriveNameFromEmail(email: string | undefined) {
     .join(' ')
 }
 
-function mapSessionToClient(session: Session | null): PortalClient | null {
+function mapSessionToFallbackClient(session: Session | null): PortalClient | null {
   if (!session?.user) {
     return null
   }
@@ -66,6 +74,41 @@ function mapSessionToClient(session: Session | null): PortalClient | null {
     email: session.user.email ?? '',
     role: 'Client',
   }
+}
+
+function mapProfileToClient(
+  profile: ClientProfileRow,
+  fallback: PortalClient,
+): PortalClient {
+  return {
+    id: profile.id,
+    name: profile.full_name ?? fallback.name,
+    company: profile.company ?? fallback.company,
+    email: profile.email ?? fallback.email,
+    role: profile.role ?? fallback.role,
+  }
+}
+
+async function getLiveClientFromSession(
+  session: Session | null,
+): Promise<PortalClient | null> {
+  const fallback = mapSessionToFallbackClient(session)
+
+  if (!fallback || !supabase) {
+    return fallback
+  }
+
+  const { data, error } = await supabase
+    .from('client_profiles')
+    .select('id, email, full_name, company, role')
+    .eq('id', fallback.id)
+    .maybeSingle()
+
+  if (error || !data) {
+    return fallback
+  }
+
+  return mapProfileToClient(data as ClientProfileRow, fallback)
 }
 
 function normaliseItems(items: QuoteItem[] | null | undefined) {
@@ -127,7 +170,7 @@ export async function getCurrentClient(): Promise<PortalClient | null> {
       throw error
     }
 
-    return mapSessionToClient(session)
+    return getLiveClientFromSession(session)
   }
 
   if (typeof window === 'undefined') {
@@ -153,7 +196,7 @@ export async function signInClient(
       throw error
     }
 
-    const client = mapSessionToClient(data.session)
+    const client = await getLiveClientFromSession(data.session)
 
     if (!client) {
       throw new Error('Unable to load that client account.')
@@ -212,7 +255,9 @@ export async function getQuotesForClient(
   return demoQuotes.filter((quote) => quote.clientId === clientId)
 }
 
-export function subscribeToAuth(callback: (client: PortalClient | null) => void) {
+export function subscribeToAuth(
+  callback: (client: PortalClient | null) => void | Promise<void>,
+) {
   if (!hasSupabase || !supabase) {
     return () => {}
   }
@@ -220,7 +265,10 @@ export function subscribeToAuth(callback: (client: PortalClient | null) => void)
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((_event, session) => {
-    callback(mapSessionToClient(session))
+    void (async () => {
+      const client = await getLiveClientFromSession(session)
+      await callback(client)
+    })()
   })
 
   return () => {
