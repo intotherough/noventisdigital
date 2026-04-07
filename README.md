@@ -68,12 +68,14 @@ The project includes:
 - `public/CNAME` for `noventisdigital.co.uk`
 - `public/404.html` so React routes like `/portal` work on GitHub Pages
 - `npm run deploy` using `gh-pages`
+- A GitHub Actions workflow that republishes the site when `main` is pushed
 
 Typical flow:
 
 ```bash
-npm run build
-npm run deploy
+git add .
+git commit -m "Update site"
+git push
 ```
 
 Then in GitHub Pages:
@@ -81,6 +83,8 @@ Then in GitHub Pages:
 1. Set the repo to deploy from the `gh-pages` branch.
 2. Add the custom domain `noventisdigital.co.uk`.
 3. Point your DNS records at GitHub Pages if you have not already.
+
+If you want to trigger a deploy manually from your machine, `npm run deploy` still works.
 
 ## Notes
 
