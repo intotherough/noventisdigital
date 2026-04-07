@@ -7,6 +7,7 @@ export type QuoteStatus =
   | 'In delivery'
 
 export type MilestoneState = 'done' | 'current' | 'next'
+export type QuoteAttachmentKind = 'pdf' | 'doc' | 'link'
 
 export type PortalClient = {
   id: string
@@ -29,6 +30,13 @@ export type Milestone = {
   status: MilestoneState
 }
 
+export type QuoteAttachment = {
+  label: string
+  url: string
+  kind: QuoteAttachmentKind
+  description?: string
+}
+
 export type QuoteDocument = {
   id: string
   clientId: string
@@ -44,4 +52,5 @@ export type QuoteDocument = {
   scope: string[]
   items: QuoteItem[]
   milestones: Milestone[]
+  documents: QuoteAttachment[]
 }

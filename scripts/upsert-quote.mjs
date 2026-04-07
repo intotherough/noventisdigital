@@ -95,6 +95,7 @@ async function main() {
     scope: Array.isArray(input.scope) ? input.scope : [],
     line_items: Array.isArray(input.line_items) ? input.line_items : [],
     milestones: Array.isArray(input.milestones) ? input.milestones : [],
+    documents: Array.isArray(input.documents) ? input.documents : [],
     total_amount:
       typeof input.total_amount === 'number'
         ? input.total_amount

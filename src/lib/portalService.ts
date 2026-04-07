@@ -4,6 +4,7 @@ import type {
   Milestone,
   PortalClient,
   PortalMode,
+  QuoteAttachment,
   QuoteDocument,
   QuoteItem,
 } from '../types'
@@ -27,6 +28,7 @@ type QuoteRow = {
   scope: string[] | null
   line_items: QuoteItem[] | null
   milestones: Milestone[] | null
+  documents: QuoteAttachment[] | null
   total_amount: number | null
 }
 
@@ -140,6 +142,22 @@ function normaliseMilestones(milestones: Milestone[] | null | undefined) {
   }))
 }
 
+function normaliseDocuments(documents: QuoteAttachment[] | null | undefined) {
+  if (!Array.isArray(documents)) {
+    return []
+  }
+
+  return documents.map((document) => ({
+    label: document.label,
+    url: document.url,
+    kind:
+      document.kind === 'pdf' || document.kind === 'doc' || document.kind === 'link'
+        ? document.kind
+        : 'link',
+    description: document.description,
+  }))
+}
+
 function normaliseQuote(row: QuoteRow): QuoteDocument {
   return {
     id: row.id,
@@ -156,6 +174,7 @@ function normaliseQuote(row: QuoteRow): QuoteDocument {
     scope: Array.isArray(row.scope) ? row.scope : [],
     items: normaliseItems(row.line_items),
     milestones: normaliseMilestones(row.milestones),
+    documents: normaliseDocuments(row.documents),
   }
 }
 
@@ -240,7 +259,7 @@ export async function getQuotesForClient(
     const { data, error } = await supabase
       .from('quotes')
       .select(
-        'id, auth_user_id, client_name, client_company, client_email, title, summary, status, valid_until, timeline, notes, contact_email, scope, line_items, milestones, total_amount',
+        'id, auth_user_id, client_name, client_company, client_email, title, summary, status, valid_until, timeline, notes, contact_email, scope, line_items, milestones, documents, total_amount',
       )
       .eq('auth_user_id', clientId)
       .order('updated_at', { ascending: false })

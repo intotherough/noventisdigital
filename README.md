@@ -1,13 +1,13 @@
 # Noventis Digital
 
-This repository powers `noventisdigital.co.uk` and the private client quote portal behind it.
+This repository powers `noventisdigital.co.uk` and the private client portal behind it.
 
 It is built for two jobs:
 
-- the public-facing site for John Byrne as a digital entrepreneur, AI consultant and developer
-- a private portal where each client can sign in and review only their own quotes
+- the public-facing Noventis Digital site
+- a private portal where each client can sign in and review only their own project material
 
-The frontend is deployed to GitHub Pages. Client authentication and quote data are designed to run through Supabase.
+The frontend is deployed to GitHub Pages. Client authentication and private portal data run through Supabase.
 
 ## Current Status
 
@@ -127,10 +127,10 @@ Do not put the service role key into GitHub Pages frontend env vars.
 The schema creates:
 
 - `public.client_profiles` for the client directory
-- `public.quotes` for portal quotes
+- `public.quotes` for portal records
 - triggers for `updated_at`
 - a trigger that creates a client profile when a new auth user is created
-- row-level security so clients can only read their own profile and quotes
+- row-level security so clients can only read their own profile and records
 
 ## Demo Portal Access
 
@@ -173,7 +173,7 @@ SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run quote:upsert -- \
   --file supabase/examples/quote.example.json
 ```
 
-That script looks up the client by email, then inserts or updates the quote in `public.quotes`.
+That script looks up the client by email, then inserts or updates the record in `public.quotes`.
 
 Script file:
 
@@ -185,12 +185,13 @@ In live mode:
 
 - clients authenticate with Supabase Auth
 - the app loads their profile from `client_profiles`
-- the app loads only quotes where `auth_user_id = auth.uid()`
-- the quote portal stays compatible with GitHub Pages because the secure data layer lives in Supabase, not in the static host
+- the app loads only records where `auth_user_id = auth.uid()`
+- the portal stays compatible with GitHub Pages because the secure data layer lives in Supabase, not in the static host
 
 ## Notes
 
 - `public/CNAME` is already set to `noventisdigital.co.uk`
 - `public/404.html` is included so `/portal` works on GitHub Pages
 - approval actions currently open email replies rather than writing back into Supabase
+- hosted PDFs for client packs should live inside `public/documents/` or another web-accessible URL; local `file:///` paths will not work for deployed users
 - if you want in-app approval, I would add either a small admin backend or Supabase edge functions next

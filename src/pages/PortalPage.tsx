@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { demoCredentials } from '../data/demoPortal'
 import { formatCurrency, formatDate } from '../lib/formatting'
-import type { PortalClient, PortalMode, QuoteDocument } from '../types'
+import type {
+  PortalClient,
+  PortalMode,
+  QuoteAttachment,
+  QuoteDocument,
+} from '../types'
 
 type PortalPageProps = {
   client: PortalClient | null
@@ -25,6 +30,10 @@ function buildMailtoLink(email: string, subject: string, body: string) {
   return `mailto:${email}?${params.toString()}`
 }
 
+function isPdf(document: QuoteAttachment) {
+  return document.kind === 'pdf' || document.url.toLowerCase().endsWith('.pdf')
+}
+
 export function PortalPage({
   client,
   quotes,
@@ -41,6 +50,7 @@ export function PortalPage({
   const [authPending, setAuthPending] = useState(false)
   const [signOutPending, setSignOutPending] = useState(false)
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null)
+  const [selectedDocumentUrl, setSelectedDocumentUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (!quotes.length) {
@@ -57,6 +67,24 @@ export function PortalPage({
 
   const selectedQuote =
     quotes.find((quote) => quote.id === selectedQuoteId) ?? quotes[0] ?? null
+
+  useEffect(() => {
+    if (!selectedQuote?.documents.length) {
+      setSelectedDocumentUrl(null)
+      return
+    }
+
+    setSelectedDocumentUrl((current) =>
+      current && selectedQuote.documents.some((document) => document.url === current)
+        ? current
+        : selectedQuote.documents[0].url,
+    )
+  }, [selectedQuote])
+
+  const selectedDocument =
+    selectedQuote?.documents.find((document) => document.url === selectedDocumentUrl) ??
+    selectedQuote?.documents[0] ??
+    null
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -93,7 +121,7 @@ export function PortalPage({
           <span className="brand-mark">ND</span>
           <span className="brand-copy">
             <strong>Noventis Digital</strong>
-            <span>Client quote portal</span>
+            <span>Private client workspace</span>
           </span>
         </Link>
 
@@ -117,44 +145,41 @@ export function PortalPage({
 
       <main className="container">
         {!client ? (
-          <section className="portal-login-grid">
+          <section className="portal-login-grid portal-login-grid--kinetic">
             <div className="portal-login-side">
               <p className="eyebrow">Private client access</p>
-              <h1>Share quotes inside a proper client portal.</h1>
+              <h1>A portal for proposals, PDFs and delivery material.</h1>
               <p>
-                Clients can sign in to review pricing, scope, milestones and next
-                steps without digging through email threads.
+                Clients sign in once and get a single private place to review
+                project detail, supporting documents and next-step actions.
               </p>
 
               <div className="portal-value-list">
-                <article className="benefit-card">
-                  <h3>Individual logins</h3>
-                  <p>Each client account only sees its own quotes and scope.</p>
+                <article className="benefit-card benefit-card--kinetic">
+                  <h3>Hosted project documents</h3>
+                  <p>Attach statements of work, proposals and supporting PDF packs.</p>
                 </article>
-                <article className="benefit-card">
-                  <h3>Cleaner approvals</h3>
-                  <p>Give clients a single place to review and respond to proposals.</p>
+                <article className="benefit-card benefit-card--kinetic">
+                  <h3>Per-client visibility</h3>
+                  <p>Each client only sees the material attached to their own account.</p>
                 </article>
-                <article className="benefit-card">
-                  <h3>Static hosting compatible</h3>
-                  <p>
-                    GitHub Pages handles the frontend. Supabase handles auth and
-                    secure quote retrieval.
-                  </p>
+                <article className="benefit-card benefit-card--kinetic">
+                  <h3>Static frontend, secure data layer</h3>
+                  <p>GitHub Pages serves the interface while Supabase handles access.</p>
                 </article>
               </div>
             </div>
 
-            <div className="portal-login-card">
+            <div className="portal-login-card portal-login-card--kinetic">
               <div className="login-card-heading">
                 <p className="eyebrow">Portal sign in</p>
-                <h2>{booting ? 'Checking session...' : 'Welcome back'}</h2>
+                <h2>{booting ? 'Checking session...' : 'Open your workspace'}</h2>
               </div>
 
               {portalMode === 'demo' ? (
                 <div className="notice-banner">
                   Demo mode is active. Set `VITE_SUPABASE_URL` and
-                  `VITE_SUPABASE_ANON_KEY` to switch to live client accounts.
+                  `VITE_SUPABASE_ANON_KEY` to use live client logins.
                 </div>
               ) : null}
 
@@ -186,7 +211,11 @@ export function PortalPage({
                   />
                 </label>
 
-                <button className="primary-button full-width-button" disabled={authPending} type="submit">
+                <button
+                  className="primary-button full-width-button"
+                  disabled={authPending}
+                  type="submit"
+                >
                   {authPending ? 'Signing in...' : 'Sign in to portal'}
                 </button>
               </form>
@@ -214,23 +243,23 @@ export function PortalPage({
             </div>
           </section>
         ) : (
-          <section className="portal-layout">
+          <section className="portal-layout portal-layout--kinetic">
             <aside className="portal-aside">
-              <div className="client-card">
-                <p className="eyebrow">Signed in</p>
-                <h2>{client.name}</h2>
-                <p>{client.company}</p>
+              <div className="client-card client-card--kinetic">
+                <p className="eyebrow">Workspace</p>
+                <h2>{client.company}</h2>
+                <p>{client.name}</p>
                 <p>{client.email}</p>
               </div>
 
-              <div className="list-card">
+              <div className="list-card list-card--kinetic">
                 <div className="list-card-heading">
-                  <h3>Your quotes</h3>
+                  <h3>Project packs</h3>
                   <span>{quotes.length}</span>
                 </div>
 
                 {quotesLoading ? (
-                  <div className="loading-panel">Loading quotes...</div>
+                  <div className="loading-panel">Loading project packs...</div>
                 ) : quotes.length ? (
                   <div className="quote-list">
                     {quotes.map((quote) => (
@@ -248,14 +277,14 @@ export function PortalPage({
                         </span>
                         <span className="quote-list-meta">
                           <strong>{formatCurrency(quote.amount)}</strong>
-                          <span>Valid until {formatDate(quote.validUntil)}</span>
+                          <span>{quote.documents.length} document(s)</span>
                         </span>
                       </button>
                     ))}
                   </div>
                 ) : (
                   <div className="empty-state">
-                    No quotes have been assigned to this account yet.
+                    No project packs have been assigned to this account yet.
                   </div>
                 )}
               </div>
@@ -265,10 +294,10 @@ export function PortalPage({
               {portalError ? <div className="error-banner">{portalError}</div> : null}
 
               {selectedQuote ? (
-                <article className="quote-detail">
+                <article className="quote-detail quote-detail--kinetic">
                   <div className="quote-detail-header">
                     <div>
-                      <p className="eyebrow">Proposal</p>
+                      <p className="eyebrow">Client pack</p>
                       <h1>{selectedQuote.title}</h1>
                     </div>
                     <span className="status-pill is-amber">{selectedQuote.status}</span>
@@ -304,6 +333,52 @@ export function PortalPage({
                       </ul>
                     </section>
                   </div>
+
+                  {selectedQuote.documents.length ? (
+                    <section className="detail-card">
+                      <div className="section-card-heading">
+                        <h3>Attached documents</h3>
+                        <span>{selectedQuote.documents.length}</span>
+                      </div>
+
+                      <div className="document-grid">
+                        {selectedQuote.documents.map((document) => (
+                          <button
+                            className={`document-card ${
+                              document.url === selectedDocument?.url ? 'is-active' : ''
+                            }`}
+                            key={`${document.label}-${document.url}`}
+                            onClick={() => setSelectedDocumentUrl(document.url)}
+                            type="button"
+                          >
+                            <span className="document-badge">{document.kind}</span>
+                            <strong>{document.label}</strong>
+                            {document.description ? <p>{document.description}</p> : null}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ) : null}
+
+                  {selectedDocument && isPdf(selectedDocument) ? (
+                    <section className="detail-card pdf-preview-card">
+                      <div className="section-card-heading">
+                        <h3>{selectedDocument.label}</h3>
+                        <a
+                          className="ghost-button"
+                          href={selectedDocument.url}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          Open full PDF
+                        </a>
+                      </div>
+
+                      <div className="pdf-frame-wrap">
+                        <iframe src={selectedDocument.url} title={selectedDocument.label} />
+                      </div>
+                    </section>
+                  ) : null}
 
                   <section className="detail-card">
                     <div className="section-card-heading">
@@ -349,8 +424,8 @@ export function PortalPage({
                       className="primary-button"
                       href={buildMailtoLink(
                         selectedQuote.contactEmail,
-                        `Quote approval: ${selectedQuote.title}`,
-                        `Hi John,\n\nI'd like to approve the quote for ${selectedQuote.title}.\n\nThanks,`,
+                        `Approval: ${selectedQuote.title}`,
+                        `Hello,\n\nI'd like to approve ${selectedQuote.title}.\n\nThanks,`,
                       )}
                     >
                       Approve by email
@@ -359,8 +434,8 @@ export function PortalPage({
                       className="ghost-button"
                       href={buildMailtoLink(
                         selectedQuote.contactEmail,
-                        `Quote feedback: ${selectedQuote.title}`,
-                        `Hi John,\n\nI have a few questions about ${selectedQuote.title}.\n\n`,
+                        `Feedback: ${selectedQuote.title}`,
+                        `Hello,\n\nI have feedback on ${selectedQuote.title}.\n\n`,
                       )}
                     >
                       Request changes
@@ -369,7 +444,7 @@ export function PortalPage({
                 </article>
               ) : (
                 <div className="empty-state large">
-                  This client account is active, but there are no quotes to show yet.
+                  This client account is active, but there are no project packs to show yet.
                 </div>
               )}
             </div>

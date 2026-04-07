@@ -26,6 +26,7 @@ create table if not exists public.quotes (
   scope text[] not null default '{}',
   line_items jsonb not null default '[]'::jsonb,
   milestones jsonb not null default '[]'::jsonb,
+  documents jsonb not null default '[]'::jsonb,
   total_amount numeric(10, 2) not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

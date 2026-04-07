@@ -80,6 +80,14 @@ export const demoQuotes: QuoteDocument[] = [
         status: 'next',
       },
     ],
+    documents: [
+      {
+        label: 'Proposal pack PDF',
+        url: '/documents/Watson-Proposal-SOW-2026-04-07.pdf',
+        kind: 'pdf',
+        description: 'Hosted PDF pack for reviewing the structure and presentation.',
+      },
+    ],
   },
   {
     id: 'quote-portal-build',
@@ -135,6 +143,14 @@ export const demoQuotes: QuoteDocument[] = [
         status: 'next',
       },
     ],
+    documents: [
+      {
+        label: 'Client portal brief',
+        url: '/documents/Watson-Proposal-SOW-2026-04-07.pdf',
+        kind: 'pdf',
+        description: 'Reference document covering scope, terms and project detail.',
+      },
+    ],
   },
   {
     id: 'quote-fund-ops',
@@ -188,6 +204,14 @@ export const demoQuotes: QuoteDocument[] = [
         label: 'Partner reporting handover',
         due: '2026-04-30',
         status: 'next',
+      },
+    ],
+    documents: [
+      {
+        label: 'Automation scope PDF',
+        url: '/documents/Watson-Proposal-SOW-2026-04-07.pdf',
+        kind: 'pdf',
+        description: 'Supporting PDF added to demonstrate document access inside the portal.',
       },
     ],
   },

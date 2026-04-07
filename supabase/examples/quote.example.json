@@ -46,5 +46,13 @@
       "status": "next"
     }
   ],
+  "documents": [
+    {
+      "label": "Statement of work PDF",
+      "url": "/documents/Watson-Proposal-SOW-2026-04-07.pdf",
+      "kind": "pdf",
+      "description": "Primary proposal PDF shown inside the client portal."
+    }
+  ],
   "total_amount": 4800
 }
