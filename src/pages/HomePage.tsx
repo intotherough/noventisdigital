@@ -50,6 +50,15 @@ const ledgerItems = [
   'Operational software',
 ]
 
+const ribbonItems = [
+  'AI strategy',
+  'Business transformation',
+  'Digital products',
+  'Client experience',
+  'Automation design',
+  'Operational software',
+]
+
 export function HomePage() {
   return (
     <div className="page-shell">
@@ -84,16 +93,28 @@ export function HomePage() {
       <main>
         <section className="hero-section hero-section--glass">
           <div className="container hero-column">
-            <p className="eyebrow">Experienced digital leadership across AI, software, and transformation</p>
-            <h1>Digital, AI, and transformation work that changes how the business runs.</h1>
-            <p className="hero-text">
+            <div aria-hidden="true" className="hero-aura">
+              <span className="hero-orbit hero-orbit--outer" />
+              <span className="hero-orbit hero-orbit--inner" />
+              <span className="hero-comet hero-comet--one">AI</span>
+              <span className="hero-comet hero-comet--two">Ops</span>
+              <span className="hero-comet hero-comet--three">DX</span>
+            </div>
+
+            <p className="eyebrow motion-reveal motion-reveal--1">
+              Experienced digital leadership across AI, software, and transformation
+            </p>
+            <h1 className="motion-reveal motion-reveal--2">
+              Digital, AI, and transformation work that changes how the business runs.
+            </h1>
+            <p className="hero-text motion-reveal motion-reveal--3">
               Noventis Digital brings senior digital expertise to AI adoption,
               software delivery, and business transformation. The focus is practical:
               clearer operations, stronger client experiences, and systems teams can
               actually use.
             </p>
 
-            <div className="hero-actions">
+            <div className="hero-actions motion-reveal motion-reveal--4">
               <a
                 className="primary-button"
                 href="mailto:hello@noventisdigital.co.uk?subject=Project%20enquiry"
@@ -105,9 +126,21 @@ export function HomePage() {
               </Link>
             </div>
 
-            <div aria-label="Core offer" className="hero-ledger">
+            <div aria-label="Core offer" className="hero-ledger motion-reveal motion-reveal--5">
               {ledgerItems.map((item) => (
                 <span key={item}>{item}</span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section section--flush">
+          <div className="marquee-shell">
+            <div className="marquee-track">
+              {[...ribbonItems, ...ribbonItems].map((item, index) => (
+                <span className="marquee-item" key={`${item}-${index}`}>
+                  {item}
+                </span>
               ))}
             </div>
           </div>
@@ -182,6 +215,7 @@ export function HomePage() {
               </div>
 
               <div className="preview-surface">
+                <div aria-hidden="true" className="preview-pulse" />
                 <div className="preview-document-list">
                   <button className="preview-document is-active" type="button">
                     Project overview
@@ -199,6 +233,9 @@ export function HomePage() {
                     <span className="preview-sheet-label">Workspace</span>
                     <strong>Client project pack</strong>
                     <p>Scope, timing, documents, and next steps held in one controlled working surface.</p>
+                    <div className="preview-progress">
+                      <span />
+                    </div>
                   </div>
                 </div>
               </div>
