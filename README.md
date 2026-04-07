@@ -38,6 +38,7 @@ VITE_SUPABASE_ANON_KEY=...
 6. Optional but recommended: store `full_name` and `company` in the auth user's metadata so the portal header looks polished.
 
 Once those env vars exist, the app switches from demo mode to live mode automatically.
+If you are deploying through GitHub Actions, add the same values as repository secrets named `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 
 ## Quote table model
 
