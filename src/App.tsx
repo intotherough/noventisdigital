@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { startTransition, useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/HomePage'
+import { AdminPage } from './pages/AdminPage'
 import { PortalPage } from './pages/PortalPage'
 import {
   getCurrentClient,
@@ -161,6 +162,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/admin" element={<AdminPage />} />
       <Route
         path="/portal"
         element={

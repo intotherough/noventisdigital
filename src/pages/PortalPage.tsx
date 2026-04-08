@@ -1,9 +1,13 @@
 import type { FormEvent } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { demoCredentials } from '../data/demoPortal'
 import { formatCurrency, formatDate } from '../lib/formatting'
-import { resolveDocumentAssetUrl } from '../lib/portalService'
+import {
+  getDocumentStoragePath,
+  logPortalAuditEvent,
+  resolveDocumentAssetUrl,
+} from '../lib/portalService'
 import type {
   PortalClient,
   PortalMode,
@@ -65,6 +69,8 @@ export function PortalPage({
   )
   const [documentLoading, setDocumentLoading] = useState(false)
   const [documentError, setDocumentError] = useState<string | null>(null)
+  const viewedQuoteIdsRef = useRef(new Set<string>())
+  const viewedDocumentKeysRef = useRef(new Set<string>())
 
   useEffect(() => {
     if (!quotes.length) {
@@ -158,6 +164,63 @@ export function PortalPage({
       }
     }
   }, [selectedDocument])
+
+  useEffect(() => {
+    if (!client || !selectedQuote) {
+      return
+    }
+
+    if (viewedQuoteIdsRef.current.has(selectedQuote.id)) {
+      return
+    }
+
+    viewedQuoteIdsRef.current.add(selectedQuote.id)
+
+    void logPortalAuditEvent('quote_viewed', {
+      quoteId: selectedQuote.id,
+      metadata: {
+        quoteTitle: selectedQuote.title,
+        company: selectedQuote.company,
+      },
+    })
+  }, [client, selectedQuote])
+
+  useEffect(() => {
+    if (
+      !client ||
+      !selectedQuote ||
+      !selectedDocument ||
+      !selectedDocumentAssetUrl ||
+      documentLoading ||
+      documentError
+    ) {
+      return
+    }
+
+    const documentKey = getDocumentKey(selectedDocument)
+
+    if (viewedDocumentKeysRef.current.has(documentKey)) {
+      return
+    }
+
+    viewedDocumentKeysRef.current.add(documentKey)
+
+    void logPortalAuditEvent('document_viewed', {
+      quoteId: selectedQuote.id,
+      documentPath: getDocumentStoragePath(selectedDocument),
+      metadata: {
+        documentLabel: selectedDocument.label,
+        documentKind: selectedDocument.kind,
+      },
+    })
+  }, [
+    client,
+    documentError,
+    documentLoading,
+    selectedDocument,
+    selectedDocumentAssetUrl,
+    selectedQuote,
+  ])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -443,6 +506,16 @@ export function PortalPage({
                           <a
                             className="ghost-button"
                             href={selectedDocumentAssetUrl}
+                            onClick={() => {
+                              void logPortalAuditEvent('document_opened', {
+                                quoteId: selectedQuote.id,
+                                documentPath: getDocumentStoragePath(selectedDocument),
+                                metadata: {
+                                  documentLabel: selectedDocument.label,
+                                  documentKind: selectedDocument.kind,
+                                },
+                              })
+                            }}
                             rel="noreferrer"
                             target="_blank"
                           >

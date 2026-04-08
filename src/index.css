@@ -71,7 +71,9 @@ a {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -1337,6 +1339,110 @@ p {
   text-align: center;
 }
 
+.text-area-input {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.admin-main-shell {
+  padding-top: 2rem;
+}
+
+.admin-shell,
+.admin-stack,
+.admin-sidebar,
+.admin-form-card,
+.admin-create-card,
+.admin-audit-list,
+.admin-audit-item {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 0.8fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-hero-card {
+  min-height: 12rem;
+  align-content: end;
+}
+
+.admin-stat-card {
+  align-content: space-between;
+  min-height: 12rem;
+}
+
+.admin-stat-card span {
+  color: var(--muted);
+}
+
+.admin-stat-card strong {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  line-height: 0.9;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.34fr) minmax(0, 0.66fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-inline-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-inline-field {
+  flex: 1 1 18rem;
+}
+
+.admin-span-2 {
+  grid-column: 1 / -1;
+}
+
+.admin-danger-button {
+  border-color: rgba(255, 192, 176, 0.24);
+  color: var(--danger);
+}
+
+.admin-audit-list {
+  max-height: 38rem;
+  overflow: auto;
+}
+
+.admin-audit-item {
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  background: rgba(255, 250, 244, 0.025);
+}
+
+.admin-audit-item p {
+  margin: 0;
+  color: var(--muted-strong);
+}
+
+.admin-audit-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -1441,6 +1547,9 @@ p {
   .section-heading--split,
   .portal-login-grid,
   .portal-layout,
+  .admin-grid,
+  .admin-overview-grid,
+  .admin-form-grid,
   .detail-grid,
   .portal-value-list,
   .capability-grid,
@@ -1496,7 +1605,8 @@ p {
   .quote-detail-header,
   .quote-list-topline,
   .quote-list-meta,
-  .section-card-heading {
+  .section-card-heading,
+  .admin-inline-form {
     align-items: flex-start;
     flex-direction: column;
   }

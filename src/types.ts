@@ -56,3 +56,84 @@ export type QuoteDocument = {
   milestones: Milestone[]
   documents: QuoteAttachment[]
 }
+
+export type AdminUser = {
+  id: string
+  email: string
+  name: string
+}
+
+export type ClientPackSummary = {
+  id: string
+  title: string
+  status: string
+  updatedAt: string
+  documentCount: number
+}
+
+export type AdminClientRecord = {
+  id: string
+  email: string
+  name: string
+  company: string
+  role: string
+  createdAt: string
+  updatedAt: string
+  lastSignInAt: string | null
+  quoteCount: number
+  latestQuoteTitle: string | null
+  packs: ClientPackSummary[]
+}
+
+export type AuditLogRecord = {
+  id: string
+  scope: 'client_portal' | 'admin_console'
+  eventType: string
+  route: string | null
+  createdAt: string
+  actorUserId: string | null
+  actorEmail: string | null
+  actorName: string | null
+  subjectUserId: string | null
+  subjectEmail: string | null
+  subjectName: string | null
+  quoteId: string | null
+  documentPath: string | null
+  metadata: Record<string, unknown>
+}
+
+export type CreateClientInput = {
+  email: string
+  password: string
+  fullName: string
+  company: string
+  role: string
+}
+
+export type UpdateClientInput = {
+  userId: string
+  email: string
+  fullName: string
+  company: string
+  role: string
+}
+
+export type ResetClientPasswordInput = {
+  userId: string
+  password: string
+}
+
+export type UploadClientPackInput = {
+  userId: string
+  title: string
+  summary: string
+  status: string
+  validUntil: string
+  timeline: string
+  notes: string
+  totalAmount: number
+  scope: string[]
+  documentLabel: string
+  documentDescription: string
+  file: File
+}

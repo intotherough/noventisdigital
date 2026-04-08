@@ -47,6 +47,16 @@ type ResolvedDocumentAsset = {
   revokeOnDispose: boolean
 }
 
+type PortalAuditInput = {
+  actorUserId?: string
+  subjectUserId?: string | null
+  scope?: 'client_portal' | 'admin_console'
+  route?: string | null
+  quoteId?: string | null
+  documentPath?: string | null
+  metadata?: Record<string, unknown>
+}
+
 function deriveNameFromEmail(email: string | undefined) {
   if (!email) {
     return 'Client'
@@ -185,6 +195,52 @@ function parseStorageDocumentUrl(url: string) {
   return { bucket, path }
 }
 
+function getDefaultRoute() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  return window.location.pathname
+}
+
+async function insertPortalAuditEvent(
+  eventType: string,
+  input: PortalAuditInput = {},
+) {
+  if (!supabase) {
+    return
+  }
+
+  let actorUserId = input.actorUserId
+
+  if (!actorUserId) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    actorUserId = session?.user.id
+  }
+
+  if (!actorUserId) {
+    return
+  }
+
+  const { error } = await supabase.from('portal_audit_logs').insert({
+    actor_user_id: actorUserId,
+    subject_user_id: input.subjectUserId ?? actorUserId,
+    scope: input.scope ?? 'client_portal',
+    event_type: eventType,
+    route: input.route ?? getDefaultRoute(),
+    quote_id: input.quoteId ?? null,
+    document_path: input.documentPath ?? null,
+    metadata: input.metadata ?? {},
+  })
+
+  if (error) {
+    throw error
+  }
+}
+
 function normaliseQuote(row: QuoteRow): QuoteDocument {
   return {
     id: row.id,
@@ -248,6 +304,15 @@ export async function signInClient(
       throw new Error('Unable to load that client account.')
     }
 
+    void insertPortalAuditEvent('portal_signed_in', {
+      actorUserId: data.session?.user.id,
+      metadata: {
+        email: client.email,
+      },
+    }).catch((error) => {
+      console.error('Failed to write portal sign-in audit event', error)
+    })
+
     return client
   }
 
@@ -267,6 +332,19 @@ export async function signInClient(
 
 export async function signOutClient(): Promise<void> {
   if (hasSupabase && supabase) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    void insertPortalAuditEvent('portal_signed_out', {
+      actorUserId: session?.user.id,
+      metadata: {
+        route: getDefaultRoute(),
+      },
+    }).catch((error) => {
+      console.error('Failed to write portal sign-out audit event', error)
+    })
+
     const { error } = await supabase.auth.signOut()
 
     if (error) {
@@ -329,6 +407,23 @@ export async function resolveDocumentAssetUrl(
     url: document.url,
     revokeOnDispose: false,
   }
+}
+
+export async function logPortalAuditEvent(
+  eventType: string,
+  input: PortalAuditInput = {},
+) {
+  try {
+    await insertPortalAuditEvent(eventType, input)
+  } catch (error) {
+    console.error(`Failed to write audit event: ${eventType}`, error)
+  }
+}
+
+export function getDocumentStoragePath(document: QuoteAttachment) {
+  const reference = parseStorageDocumentUrl(document.url)
+
+  return reference?.path ?? document.url
 }
 
 export function subscribeToAuth(

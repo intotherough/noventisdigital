@@ -32,6 +32,30 @@ create table if not exists public.quotes (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.admin_users (
+  id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.portal_audit_logs (
+  id uuid primary key default gen_random_uuid(),
+  actor_user_id uuid not null references auth.users(id) on delete cascade,
+  subject_user_id uuid references auth.users(id) on delete set null,
+  scope text not null check (scope in ('client_portal', 'admin_console')),
+  event_type text not null,
+  route text,
+  quote_id uuid references public.quotes(id) on delete set null,
+  document_path text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists portal_audit_logs_actor_created_at_idx
+on public.portal_audit_logs (actor_user_id, created_at desc);
+
+create index if not exists portal_audit_logs_scope_created_at_idx
+on public.portal_audit_logs (scope, created_at desc);
+
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -42,6 +66,22 @@ begin
   return new;
 end;
 $$;
+
+create or replace function public.is_admin_user(target_user_id uuid default auth.uid())
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.admin_users
+    where id = coalesce(target_user_id, auth.uid())
+  );
+$$;
+
+grant execute on function public.is_admin_user(uuid) to authenticated, service_role;
 
 drop trigger if exists client_profiles_set_updated_at on public.client_profiles;
 
@@ -119,6 +159,8 @@ set
 
 alter table public.client_profiles enable row level security;
 alter table public.quotes enable row level security;
+alter table public.admin_users enable row level security;
+alter table public.portal_audit_logs enable row level security;
 
 insert into storage.buckets (
   id,
@@ -143,6 +185,11 @@ set
 drop policy if exists "Clients can view own profile" on public.client_profiles;
 drop policy if exists "Clients can update own profile" on public.client_profiles;
 drop policy if exists "Service role can manage profiles" on public.client_profiles;
+drop policy if exists "Admins can view own admin record" on public.admin_users;
+drop policy if exists "Service role can manage admin records" on public.admin_users;
+drop policy if exists "Admins can view audit logs" on public.portal_audit_logs;
+drop policy if exists "Authenticated users can insert own audit logs" on public.portal_audit_logs;
+drop policy if exists "Service role can manage audit logs" on public.portal_audit_logs;
 
 create policy "Clients can view own profile"
 on public.client_profiles
@@ -161,6 +208,17 @@ for all
 using (auth.role() = 'service_role')
 with check (auth.role() = 'service_role');
 
+create policy "Admins can view own admin record"
+on public.admin_users
+for select
+using (auth.uid() = id);
+
+create policy "Service role can manage admin records"
+on public.admin_users
+for all
+using (auth.role() = 'service_role')
+with check (auth.role() = 'service_role');
+
 drop policy if exists "Clients can view own quotes" on public.quotes;
 drop policy if exists "Service role can manage quotes" on public.quotes;
 drop policy if exists "Clients can view own storage documents" on storage.objects;
@@ -173,6 +231,34 @@ using (auth.uid() = auth_user_id);
 
 create policy "Service role can manage quotes"
 on public.quotes
+for all
+using (auth.role() = 'service_role')
+with check (auth.role() = 'service_role');
+
+create policy "Admins can view audit logs"
+on public.portal_audit_logs
+for select
+using (public.is_admin_user());
+
+create policy "Authenticated users can insert own audit logs"
+on public.portal_audit_logs
+for insert
+to authenticated
+with check (
+  auth.uid() = actor_user_id
+  and (
+    scope = 'client_portal'
+    or public.is_admin_user()
+  )
+  and (
+    subject_user_id is null
+    or subject_user_id = actor_user_id
+    or public.is_admin_user()
+  )
+);
+
+create policy "Service role can manage audit logs"
+on public.portal_audit_logs
 for all
 using (auth.role() = 'service_role')
 with check (auth.role() = 'service_role');
@@ -195,3 +281,5 @@ with check (bucket_id = 'client-documents');
 
 comment on table public.client_profiles is 'Client directory rows used by the Noventis Digital portal.';
 comment on table public.quotes is 'Client-facing quote records surfaced in the Noventis Digital portal.';
+comment on table public.admin_users is 'Users allowed to access the Noventis admin console.';
+comment on table public.portal_audit_logs is 'Audit trail for client portal activity and admin console actions.';

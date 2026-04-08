@@ -202,10 +202,40 @@ In live mode:
 - document assets should live in the private `client-documents` storage bucket, not under `public/`
 - the portal stays compatible with GitHub Pages because the secure data layer lives in Supabase, not in the static host
 
+## Admin Console
+
+The site now includes a private admin route at `/admin`.
+
+It is intended for:
+
+- creating client logins
+- updating client details
+- resetting client passwords
+- deleting client users
+- uploading private PDF packs into the `client-documents` bucket
+- reviewing recent portal and admin audit activity
+
+The browser never receives the service role key. Privileged operations run through the Supabase Edge Function at:
+
+- [supabase/functions/portal-admin/index.ts](/mnt/c/Users/john/Documents/sites/noventisdigital/supabase/functions/portal-admin/index.ts)
+
+That function checks the caller's bearer token with Supabase Auth, confirms the user exists in `public.admin_users`, and only then performs admin actions with the service role.
+
+Supporting tables:
+
+- `public.admin_users`
+- `public.portal_audit_logs`
+
+Frontend files:
+
+- [src/pages/AdminPage.tsx](/mnt/c/Users/john/Documents/sites/noventisdigital/src/pages/AdminPage.tsx)
+- [src/lib/adminService.ts](/mnt/c/Users/john/Documents/sites/noventisdigital/src/lib/adminService.ts)
+
 ## Notes
 
 - `public/CNAME` is already set to `noventisdigital.co.uk`
 - `public/404.html` is included so `/portal` works on GitHub Pages
+- `/admin` also works through the same SPA fallback
 - approval actions currently open email replies rather than writing back into Supabase
 - do not place confidential client PDFs under `public/`; anything there is public on the web
 - for private client documents, use private storage plus signed or authenticated access rather than a static public asset
