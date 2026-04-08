@@ -373,7 +373,7 @@ p {
 .hero-title {
   display: grid;
   gap: 0.05em;
-  max-width: 15ch;
+  max-width: 24ch;
   justify-items: center;
   font-size: clamp(3.2rem, 7.2vw, 6rem);
 }
@@ -400,6 +400,10 @@ p {
 
 .motion-clip--3 {
   animation-delay: 280ms;
+}
+
+.motion-clip--4 {
+  animation-delay: 380ms;
 }
 
 .hero-text {
@@ -701,6 +705,10 @@ p {
   max-width: 12ch;
 }
 
+.section-title-wide {
+  max-width: 18ch !important;
+}
+
 .body-stack {
   display: grid;
   gap: 1rem;
@@ -814,6 +822,20 @@ p {
 
 .capability-copy p:last-child {
   color: var(--muted-strong);
+}
+
+.capability-best-for {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line);
+}
+
+.capability-best-for span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .signal-list,
@@ -949,35 +971,31 @@ p {
   border: 1px solid rgba(255, 245, 232, 0.09);
 }
 
-.marquee-shell {
-  overflow: hidden;
+.filter-block {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+  gap: 2rem;
+  align-items: center;
   border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: rgba(255, 250, 244, 0.025);
+  padding-top: 1.6rem;
 }
 
-.marquee-track {
-  display: flex;
-  width: max-content;
-  padding: 1rem 0;
-  animation: marquee-slide 26s linear infinite;
+.filter-copy {
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
 }
 
-.marquee-item {
-  position: relative;
-  padding-inline: 1.4rem;
+.filter-text {
+  max-width: 34rem;
   color: var(--muted-strong);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 0.78rem;
-  white-space: nowrap;
+  font-size: 1.02rem;
 }
 
-.marquee-item::after {
-  content: '•';
-  position: absolute;
-  right: -0.2rem;
-  color: rgba(255, 245, 232, 0.36);
+.ambient-panel--filter {
+  background:
+    radial-gradient(circle at 54% 50%, rgba(236, 225, 210, 0.11), transparent 26%),
+    linear-gradient(180deg, rgba(255, 250, 244, 0.05), rgba(255, 250, 244, 0.02));
 }
 
 .closing-block {
@@ -1374,16 +1392,6 @@ p {
   }
 }
 
-@keyframes marquee-slide {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 @keyframes loading-bar {
   0% {
     transform: translateX(-18%);
@@ -1432,6 +1440,7 @@ p {
   .intro-shell,
   .intro-grid,
   .section-heading--split,
+  .filter-block,
   .portal-login-grid,
   .portal-layout,
   .detail-grid,

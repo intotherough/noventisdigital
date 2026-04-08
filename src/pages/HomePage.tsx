@@ -1,27 +1,33 @@
 import { Link } from 'react-router-dom'
 
-const capabilities = [
+const engagements = [
   {
-    kicker: 'AI',
-    title: 'AI-powered solutions and workflow design',
+    kicker: 'Fixed fee. Two weeks.',
+    title: 'Audit & Roadmap',
     description:
-      'Find where AI can remove friction, improve decision flow, and create practical leverage inside the way the business operates.',
+      "I look at what you've built, what you're paying for, and where AI would actually move the needle. You get a written roadmap, an honest read on your current stack and vendors, and a prioritised plan any competent engineer could pick up and run.",
+    bestFor:
+      "Leadership teams who suspect they're spending money in the wrong places and want a second opinion that isn't trying to sell them a platform.",
     image: '/images/ai-strategy-visual.svg',
     alt: 'Abstract AI strategy visual with luminous network lines and flowing motion.',
   },
   {
-    kicker: 'Leadership',
-    title: 'Fractional CTO and technology direction',
+    kicker: 'Hourly or fixed sprint.',
+    title: 'Build',
     description:
-      'Bring senior technical judgment into strategy, architecture, delivery, hiring, and executive decision making without building a full internal technology function.',
+      "Hands-on engineering for the work your team can't get to. Production AI features, internal tools, integrations, evaluation harnesses, and the unglamorous infrastructure that makes AI products actually work in front of real users.",
+    bestFor:
+      'Companies with a clear thing they need built and no one available to build it properly.',
     image: '/images/portal-systems-visual.svg',
     alt: 'Abstract leadership visual with layered interface geometry and directional movement.',
   },
   {
-    kicker: 'Transformation',
-    title: 'Transformation that changes operations',
+    kicker: 'Monthly retainer.',
+    title: 'Support & Evolve',
     description:
-      'Turn strategy into better systems, stronger operating rhythm, clearer accountability, and delivery the organisation can actually feel.',
+      "A few days a month of senior technical judgment. Architecture reviews, hiring help, vendor decisions, board prep, and being the person your team can call when something is on fire at 9pm.",
+    bestFor:
+      "Founders or leadership teams who need a CTO in the room but don't yet need one on payroll.",
     image: '/images/transformation-visual.svg',
     alt: 'Abstract business transformation visual with layered signals and upward movement.',
   },
@@ -29,41 +35,34 @@ const capabilities = [
 
 const principles = [
   {
-    title: 'Executive-level perspective',
+    title: 'Build before deck',
     description:
-      'Decisions are shaped across strategy, architecture, delivery, operations, and commercial reality rather than from a narrow delivery lane.',
+      'Prototypes tell the truth faster than slides. Most engagements have something running inside the first week. Strategy documents that are not grounded in working code tend to age badly.',
   },
   {
-    title: 'AI with operating value',
+    title: 'Own more than you rent',
     description:
-      'AI is applied where it improves throughput, clarity, decision making, or client experience, not where it merely sounds current.',
+      "Most companies are paying monthly for tools they could have built once. I'll tell you which ones, and which ones to keep paying for. Subscription sprawl is the most common waste I find.",
   },
   {
-    title: 'Delivery that survives reality',
+    title: 'Boring infrastructure first',
     description:
-      'The work has to function inside the messiness of a real business, not just read well in a strategy deck.',
+      'The interesting AI work only matters if the plumbing underneath it is solid. Logging, evals, deployment, observability, cost control. The stuff nobody puts on the homepage.',
   },
 ]
 
 const ledgerItems = [
-  'AI solutions',
+  'Audit & Roadmap',
+  'Build',
+  'Support & Evolve',
   'Fractional CTO',
-  'Tech leadership',
-  'Transformation',
 ]
 
-const ribbonItems = [
-  'AI-powered solutions',
-  'Fractional CTO',
-  'Technology strategy',
-  'Operational transformation',
-  'Architecture direction',
-  'Delivery leadership',
-]
+const introSignals = ['CTO', 'Build', 'AI']
 
-const introSignals = ['CTO', 'AI', 'Scale']
+const workSignals = ['Audit', 'Build', 'Support']
 
-const approachSignals = ['Board', 'Build', 'Change']
+const approachSignals = ['Ship', 'Own', 'Stabilise']
 
 export function HomePage() {
   return (
@@ -73,12 +72,12 @@ export function HomePage() {
           <span aria-hidden="true" className="brand-mark" />
           <span className="brand-copy">
             <strong>NOVENTIS</strong>
-            <span>AI-powered solutions and executive technology leadership</span>
+            <span>Fractional CTO and AI build partner.</span>
           </span>
         </Link>
 
         <nav aria-label="Primary" className="top-nav">
-          <a href="#services">Capabilities</a>
+          <a href="#work">Work</a>
           <a href="#approach">Approach</a>
           <a href="#contact">Contact</a>
         </nav>
@@ -91,7 +90,7 @@ export function HomePage() {
             hello@noventisdigital.co.uk
           </a>
           <Link className="primary-button" to="/portal">
-            Open portal
+            Client portal
           </Link>
         </div>
       </header>
@@ -102,43 +101,43 @@ export function HomePage() {
             <div aria-hidden="true" className="hero-aura">
               <span className="hero-orbit hero-orbit--outer" />
               <span className="hero-orbit hero-orbit--inner" />
-              <span className="hero-comet hero-comet--one">AI</span>
-              <span className="hero-comet hero-comet--two">Ops</span>
-              <span className="hero-comet hero-comet--three">DX</span>
+              <span className="hero-comet hero-comet--one">Plan</span>
+              <span className="hero-comet hero-comet--two">Build</span>
+              <span className="hero-comet hero-comet--three">Run</span>
             </div>
 
             <p className="eyebrow motion-reveal motion-reveal--1">
-              Fractional CTO advisory, AI strategy, and transformation delivery
+              Fractional CTO. AI strategy. Hands-on build.
             </p>
-            <h1
-              className="hero-title"
-              aria-label="AI-powered solutions with executive technology leadership"
-            >
+            <h1 className="hero-title" aria-label="Most AI pilots never reach production. I'm the person you call when yours has to.">
               <span className="hero-title-line">
-                <span className="motion-clip motion-clip--1">AI-powered solutions</span>
+                <span className="motion-clip motion-clip--1">Most AI pilots</span>
               </span>
               <span className="hero-title-line">
-                <span className="motion-clip motion-clip--2">with executive</span>
+                <span className="motion-clip motion-clip--2">never reach production.</span>
               </span>
               <span className="hero-title-line">
-                <span className="motion-clip motion-clip--3">technology leadership.</span>
+                <span className="motion-clip motion-clip--3">I'm the person you call</span>
+              </span>
+              <span className="hero-title-line">
+                <span className="motion-clip motion-clip--4">when yours has to.</span>
               </span>
             </h1>
             <p className="hero-text motion-reveal motion-reveal--3">
-              Noventis brings executive-level technology judgment to AI strategy,
-              product direction, architecture, and transformation so the business
-              gets sharper systems, stronger delivery, and practical change.
+              Senior technical leadership, AI architecture, and engineering
+              delivery for companies that need both the judgment of a CTO and
+              someone who can still open the editor.
             </p>
 
             <div className="hero-actions motion-reveal motion-reveal--4">
               <a
                 className="primary-button"
-                href="mailto:hello@noventisdigital.co.uk?subject=Project%20enquiry"
+                href="mailto:hello@noventisdigital.co.uk?subject=Book%20a%2030-minute%20call"
               >
-                Start a conversation
+                Book a 30-minute call
               </a>
               <Link className="ghost-button" to="/portal">
-                View client portal
+                Client portal
               </Link>
             </div>
 
@@ -150,36 +149,29 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className="section section--flush">
-          <div className="marquee-shell">
-            <div className="marquee-track">
-              {[...ribbonItems, ...ribbonItems].map((item, index) => (
-                <span className="marquee-item" key={`${item}-${index}`}>
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section className="section container intro-section">
           <div className="intro-shell">
             <div className="intro-grid">
               <div>
-                <p className="eyebrow">Ethos</p>
-                <h2>Senior technology judgment, applied where the business actually moves.</h2>
+                <p className="eyebrow">About</p>
+                <h2 className="section-title-wide">
+                  I run technology at a 200-person company. On the side, I take
+                  a small number of outside engagements.
+                </h2>
               </div>
 
               <div className="body-stack">
                 <p>
-                  This is not generic digital support. It is hands-on CTO-level
-                  thinking for organisations working through AI adoption, product
-                  decisions, delivery pressure, and operational complexity.
+                  The pattern is almost always the same. A leadership team that
+                  knows AI matters. A few promising experiments. And no clear
+                  route from prototype to something the business can rely on.
                 </p>
                 <p>
-                  The work spans AI-powered solutions, technology strategy,
-                  architecture, delivery leadership, and the executive decisions
-                  that determine whether change sticks.
+                  That gap is what I close. Sometimes that means a written
+                  roadmap and an honest read on your current vendors. Sometimes
+                  it means showing up and building the thing. Sometimes it means
+                  being the senior technical voice in the room when the decisions
+                  actually get made.
                 </p>
               </div>
             </div>
@@ -198,40 +190,47 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className="section container" id="services">
+        <section className="section container" id="work">
           <div className="section-heading section-heading--split section-heading--ambient">
             <div aria-hidden="true" className="section-aura section-aura--services">
               <span className="section-aura-ring section-aura-ring--outer" />
               <span className="section-aura-ring section-aura-ring--inner" />
-              <span className="section-aura-dot section-aura-dot--one" />
-              <span className="section-aura-dot section-aura-dot--two" />
+              {workSignals.map((signal, index) => (
+                <span className={`section-aura-chip section-aura-chip--${index + 1}`} key={signal}>
+                  {signal}
+                </span>
+              ))}
             </div>
             <div>
-              <p className="eyebrow">Core mandates</p>
-              <h2>AI solutions. Technology leadership. Transformation.</h2>
+              <p className="eyebrow">Engagements</p>
+              <h2 className="section-title-wide">Three ways in. Pick the one that fits where you are.</h2>
             </div>
             <p className="section-deck">
-              These are the areas where experienced technical leadership creates
-              disproportionate leverage across the organisation.
+              The work is intentionally narrow: a clear diagnosis, a clean build,
+              or ongoing senior technical judgment where it actually matters.
             </p>
           </div>
 
           <div className="capability-grid">
-            {capabilities.map((capability, index) => (
-              <article className="capability-card" key={capability.title}>
+            {engagements.map((engagement, index) => (
+              <article className="capability-card" key={engagement.title}>
                 <div className="capability-image-wrap">
                   <img
-                    alt={capability.alt}
+                    alt={engagement.alt}
                     className="capability-image"
                     loading="lazy"
-                    src={capability.image}
+                    src={engagement.image}
                   />
                   <span className="capability-index">{`0${index + 1}`}</span>
                 </div>
                 <div className="capability-copy">
-                  <p className="eyebrow">{capability.kicker}</p>
-                  <h3>{capability.title}</h3>
-                  <p>{capability.description}</p>
+                  <p className="eyebrow">{engagement.kicker}</p>
+                  <h3>{engagement.title}</h3>
+                  <p>{engagement.description}</p>
+                  <p className="capability-best-for">
+                    <span>Best for</span>
+                    {engagement.bestFor}
+                  </p>
                 </div>
               </article>
             ))}
@@ -249,8 +248,8 @@ export function HomePage() {
                 </span>
               ))}
             </div>
-            <p className="eyebrow">Approach</p>
-            <h2>Measured presentation. Decisive execution underneath.</h2>
+            <p className="eyebrow">How I work</p>
+            <h2 className="section-title-wide">Three principles. Everything else is detail.</h2>
           </div>
 
           <div className="principle-grid">
@@ -263,39 +262,67 @@ export function HomePage() {
           </div>
         </section>
 
+        <section className="section container">
+          <div className="filter-block">
+            <div className="filter-copy">
+              <p className="eyebrow">Honest filter</p>
+              <h2 className="section-title-wide">Who this isn&apos;t for.</h2>
+              <p className="filter-text">
+                If you want a deck full of frameworks, an offshore team, or
+                someone who&apos;ll agree with whatever the loudest person in the
+                room said last week, I&apos;m not the right call. If you&apos;re
+                pre-revenue and looking for a technical co-founder, also not the
+                right call. Everything else, get in touch and we&apos;ll work out
+                whether it&apos;s a fit.
+              </p>
+            </div>
+
+            <div aria-hidden="true" className="ambient-panel ambient-panel--filter">
+              <span className="ambient-orbit ambient-orbit--large" />
+              <span className="ambient-orbit ambient-orbit--small" />
+              <span className="ambient-pulse ambient-pulse--one" />
+              <span className="ambient-pulse ambient-pulse--two" />
+              <span className="ambient-chip ambient-chip--1">Clarity</span>
+              <span className="ambient-chip ambient-chip--2">Fit</span>
+              <span className="ambient-chip ambient-chip--3">No theatre</span>
+            </div>
+          </div>
+        </section>
+
         <section className="section container" id="contact">
           <div className="closing-block">
             <div className="closing-stage">
               <div className="closing-copy">
-                <p className="eyebrow">Contact</p>
-                <h2>
-                  For leadership teams that need stronger AI capability, sharper
-                  technology direction, and real operating progress.
-                </h2>
+                <p className="eyebrow">Get in touch</p>
+                <h2 className="section-title-wide">If this sounds like the right fit, send a note.</h2>
                 <p className="closing-text">
-                  The value is not theatre. It is clear thinking, experienced
-                  leadership, and delivery that changes how the organisation
-                  actually runs.
+                  A short message about where you are and what&apos;s stuck is
+                  enough to start. First call is 30 minutes, free, and either
+                  ends with a clear next step or an honest &quot;this isn&apos;t for
+                  me, here&apos;s who you should talk to instead.&quot;
                 </p>
                 <div className="hero-actions">
                   <a
                     className="primary-button"
-                    href="mailto:hello@noventisdigital.co.uk?subject=Portal%20and%20systems%20project"
+                    href="mailto:hello@noventisdigital.co.uk?subject=Noventis%20Digital%20enquiry"
                   >
                     hello@noventisdigital.co.uk
                   </a>
-                  <Link className="ghost-button" to="/portal">
-                    Open client portal
-                  </Link>
+                  <a
+                    className="ghost-button"
+                    href="mailto:hello@noventisdigital.co.uk?subject=Book%20a%2030-minute%20call"
+                  >
+                    Book a call
+                  </a>
                 </div>
               </div>
 
               <div className="closing-panel">
                 <p className="closing-panel-label">Operating focus</p>
                 <div className="closing-panel-lines">
-                  <span>AI solutions</span>
-                  <span>Technology direction</span>
-                  <span>Transformation delivery</span>
+                  <span>Audit &amp; Roadmap</span>
+                  <span>Build</span>
+                  <span>Support &amp; Evolve</span>
                 </div>
               </div>
 
@@ -312,8 +339,8 @@ export function HomePage() {
           <div className="site-footer-brand">
             <p className="site-footer-mark">NOVENTIS DIGITAL</p>
             <p>
-              AI-powered solutions and executive technology leadership for
-              businesses that need substance, not theatre.
+              Fractional CTO and AI build partner. Based in the UK, working with
+              teams everywhere.
             </p>
           </div>
 

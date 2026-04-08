@@ -30,7 +30,7 @@
       }
 
       main {
-        width: min(980px, calc(100% - 2rem));
+        width: min(860px, calc(100% - 2rem));
         margin: 0 auto;
         padding: 3rem 0 4rem;
       }
@@ -55,14 +55,6 @@
         background: var(--panel);
       }
 
-      pre {
-        margin: 0;
-        white-space: pre-wrap;
-        word-break: break-word;
-        font: 0.95rem/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        color: var(--text);
-      }
-
       a {
         color: var(--accent);
       }
@@ -72,120 +64,14 @@
     <main>
       <h1>Homepage Review Pack</h1>
       <p>
-        Static review context for LLM copy work. Use the plain-text version if you want to
-        feed another model directly:
+        Static review context for LLM copy work. Use the plain-text version for direct prompt input:
         <a href="/review/homepage-copy.txt">/review/homepage-copy.txt</a>
       </p>
-
       <div class="panel">
-        <pre>Noventis Digital homepage review pack
-Generated: 2026-04-08
-Live site: https://noventisdigital.co.uk/
-Purpose: This file exists so another LLM can critique and rewrite the homepage copy without needing to render the SPA.
-
-Brand direction and constraints
-- Company positioning: AI-powered solutions
-- Founder positioning: CTO, technology director, consultant, executive, AI expert
-- Tone: senior, premium, minimalist, decisive, commercially credible
-- Visual direction: restrained dark theme, subtle motion, closer to Anthropic Glasswing than a generic agency site
-- Avoid: generic agency language, weak transformation cliches, vague infrastructure phrasing, hypey AI fluff, public mention of client-private material
-- Keep in mind: the client portal exists, but it is not the main homepage story
-
-Rewrite goal
-- Make the homepage sound more executive, more experienced, and more commercially sharp
-- Preserve brevity and elegance
-- Reduce generic service-list language
-- Emphasise AI-powered solutions, technology leadership, operational change, and practical business outcomes
-
-Requested output format for the rewrite model
-1. Revised homepage copy section by section
-2. Optional alternate hero headline options
-3. Short notes on any structural changes worth making
-
-Current homepage structure and copy
-
-Header
-- Brand: NOVENTIS
-- Strapline: AI-powered solutions and executive technology leadership
-- Nav: Capabilities / Approach / Contact
-- Header CTA 1: hello@noventisdigital.co.uk
-- Header CTA 2: Open portal
-
-Hero
-- Eyebrow: Fractional CTO advisory, AI strategy, and transformation delivery
-- Headline line 1: AI-powered solutions
-- Headline line 2: with executive
-- Headline line 3: technology leadership.
-- Supporting copy: Noventis brings executive-level technology judgment to AI strategy, product direction, architecture, and transformation so the business gets sharper systems, stronger delivery, and practical change.
-- Primary CTA: Start a conversation
-- Secondary CTA: View client portal
-- Ledger items: AI solutions / Fractional CTO / Tech leadership / Transformation
-
-Ribbon
-- AI-powered solutions
-- Fractional CTO
-- Technology strategy
-- Operational transformation
-- Architecture direction
-- Delivery leadership
-
-Ethos section
-- Eyebrow: Ethos
-- Heading: Senior technology judgment, applied where the business actually moves.
-- Paragraph 1: This is not generic digital support. It is hands-on CTO-level thinking for organisations working through AI adoption, product decisions, delivery pressure, and operational complexity.
-- Paragraph 2: The work spans AI-powered solutions, technology strategy, architecture, delivery leadership, and the executive decisions that determine whether change sticks.
-
-Capabilities section
-- Eyebrow: Core mandates
-- Heading: AI solutions. Technology leadership. Transformation.
-- Section deck: These are the areas where experienced technical leadership creates disproportionate leverage across the organisation.
-
-Capability card 1
-- Kicker: AI
-- Title: AI-powered solutions and workflow design
-- Body: Find where AI can remove friction, improve decision flow, and create practical leverage inside the way the business operates.
-
-Capability card 2
-- Kicker: Leadership
-- Title: Fractional CTO and technology direction
-- Body: Bring senior technical judgment into strategy, architecture, delivery, hiring, and executive decision making without building a full internal technology function.
-
-Capability card 3
-- Kicker: Transformation
-- Title: Transformation that changes operations
-- Body: Turn strategy into better systems, stronger operating rhythm, clearer accountability, and delivery the organisation can actually feel.
-
-Approach section
-- Eyebrow: Approach
-- Heading: Measured presentation. Decisive execution underneath.
-
-Principle 1
-- Title: Executive-level perspective
-- Body: Decisions are shaped across strategy, architecture, delivery, operations, and commercial reality rather than from a narrow delivery lane.
-
-Principle 2
-- Title: AI with operating value
-- Body: AI is applied where it improves throughput, clarity, decision making, or client experience, not where it merely sounds current.
-
-Principle 3
-- Title: Delivery that survives reality
-- Body: The work has to function inside the messiness of a real business, not just read well in a strategy deck.
-
-Contact section
-- Eyebrow: Contact
-- Heading: For leadership teams that need stronger AI capability, sharper technology direction, and real operating progress.
-- Supporting copy: The value is not theatre. It is clear thinking, experienced leadership, and delivery that changes how the organisation actually runs.
-- Primary CTA: hello@noventisdigital.co.uk
-- Secondary CTA: Open client portal
-- Closing panel lines: AI solutions / Technology direction / Transformation delivery
-
-Footer
-- Brand line: NOVENTIS DIGITAL
-- Footer copy: AI-powered solutions and executive technology leadership for businesses that need substance, not theatre.
-- Footer links: hello@noventisdigital.co.uk / Client portal
-
-Review prompt you can give another model
-Please critique and rewrite this homepage copy for a premium AI-powered solutions consultancy led by an experienced CTO / technology director / consultant / executive. The current design is dark, minimalist, and restrained. The copy should feel sharper, more authoritative, more commercially credible, and less like a generic digital agency. Keep it concise. Avoid cliche transformation language and avoid fluffy AI hype. Return improved copy section by section, and give 3 alternate hero headline options.</pre>
+        <p>
+          This file exists so another LLM can critique the homepage copy without needing to render the SPA.
+          It contains the current section-by-section copy, brand constraints, and a ready-made review prompt.
+        </p>
       </div>
     </main>
   </body>
