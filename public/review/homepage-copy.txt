@@ -50,7 +50,7 @@ About section
 
 Engagements section
 - Eyebrow: Engagements
-- Heading: Three ways in. Pick the one that fits where you are.
+- Heading: Three solutions. Pick the one that fits where you are.
 - Section deck: The work is intentionally narrow: a clear diagnosis, a clean build, or ongoing senior technical judgment where it actually matters.
 
 Engagement card 1
@@ -86,11 +86,6 @@ Principle 2
 Principle 3
 - Title: Boring infrastructure first
 - Body: The interesting AI work only matters if the plumbing underneath it is solid. Logging, evals, deployment, observability, cost control. The stuff nobody puts on the homepage.
-
-Honest filter section
-- Eyebrow: Honest filter
-- Heading: Who this isn't for.
-- Body: If you want a deck full of frameworks, an offshore team, or someone who'll agree with whatever the loudest person in the room said last week, I'm not the right call. If you're pre-revenue and looking for a technical co-founder, also not the right call. Everything else, get in touch and we'll work out whether it's a fit.
 
 Contact section
 - Eyebrow: Get in touch

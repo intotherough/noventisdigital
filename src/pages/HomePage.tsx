@@ -152,7 +152,7 @@ export function HomePage() {
         <section className="section container intro-section">
           <div className="intro-shell">
             <div className="intro-grid">
-              <div>
+              <div className="intro-lead">
                 <p className="eyebrow">About</p>
                 <h2 className="section-title-wide">
                   Built in production.
@@ -202,7 +202,7 @@ export function HomePage() {
             </div>
             <div>
               <p className="eyebrow">Engagements</p>
-              <h2 className="section-title-wide">Three ways in. Pick the one that fits where you are.</h2>
+              <h2 className="section-title-wide">Three solutions. Pick the one that fits where you are.</h2>
             </div>
             <p className="section-deck">
               The work is intentionally narrow: a clear diagnosis, a clean build,
@@ -258,33 +258,6 @@ export function HomePage() {
                 <p>{principle.description}</p>
               </article>
             ))}
-          </div>
-        </section>
-
-        <section className="section container">
-          <div className="filter-block">
-            <div className="filter-copy">
-              <p className="eyebrow">Honest filter</p>
-              <h2 className="section-title-wide">Who this isn&apos;t for.</h2>
-              <p className="filter-text">
-                If you want a deck full of frameworks, an offshore team, or
-                someone who&apos;ll agree with whatever the loudest person in the
-                room said last week, I&apos;m not the right call. If you&apos;re
-                pre-revenue and looking for a technical co-founder, also not the
-                right call. Everything else, get in touch and we&apos;ll work out
-                whether it&apos;s a fit.
-              </p>
-            </div>
-
-            <div aria-hidden="true" className="ambient-panel ambient-panel--filter">
-              <span className="ambient-orbit ambient-orbit--large" />
-              <span className="ambient-orbit ambient-orbit--small" />
-              <span className="ambient-pulse ambient-pulse--one" />
-              <span className="ambient-pulse ambient-pulse--two" />
-              <span className="ambient-chip ambient-chip--1">Clarity</span>
-              <span className="ambient-chip ambient-chip--2">Fit</span>
-              <span className="ambient-chip ambient-chip--3">No theatre</span>
-            </div>
           </div>
         </section>
 
