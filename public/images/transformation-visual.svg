@@ -1,61 +1,82 @@
 <svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="900" rx="48" fill="#0B0B0F"/>
-  <rect x="28" y="28" width="1144" height="844" rx="36" fill="url(#bg)"/>
-  <circle cx="936" cy="624" r="212" fill="url(#glow)" opacity="0.86"/>
-  <circle cx="252" cy="248" r="164" fill="url(#glowTwo)" opacity="0.54"/>
-  <path d="M142 695H1058" stroke="#F1E7D8" stroke-opacity="0.18"/>
-  <path d="M142 581H1058" stroke="#F1E7D8" stroke-opacity="0.08"/>
-  <path d="M142 467H1058" stroke="#F1E7D8" stroke-opacity="0.08"/>
-  <path d="M142 353H1058" stroke="#F1E7D8" stroke-opacity="0.08"/>
-  <path d="M142 239H1058" stroke="#F1E7D8" stroke-opacity="0.08"/>
-  <rect x="170" y="120" width="322" height="52" rx="26" fill="#131319" stroke="#F1E7D8" stroke-opacity="0.22"/>
-  <text x="212" y="153" fill="#E8DDCE" font-family="Manrope, Arial, sans-serif" font-size="20" letter-spacing="0.28em">TRANSFORMATION</text>
-  <path d="M180 650C290 620 354 582 424 520C507 447 571 396 645 373C714 351 795 352 911 376" stroke="url(#flowOne)" stroke-width="3"/>
-  <path d="M180 705C317 680 412 625 511 527C593 446 672 409 763 404C827 400 893 416 1014 466" stroke="url(#flowTwo)" stroke-width="2"/>
-  <path d="M182 598C268 562 344 513 409 449C492 368 560 315 630 282C715 241 814 228 1014 246" stroke="url(#flowThree)" stroke-width="2"/>
-  <rect x="220" y="568" width="118" height="127" rx="22" fill="#16161C" stroke="#F1E7D8" stroke-opacity="0.12"/>
-  <rect x="374" y="520" width="118" height="175" rx="22" fill="#16161C" stroke="#F1E7D8" stroke-opacity="0.12"/>
-  <rect x="528" y="440" width="118" height="255" rx="22" fill="#17171F" stroke="#F1E7D8" stroke-opacity="0.12"/>
-  <rect x="682" y="352" width="118" height="343" rx="22" fill="#191922" stroke="#F1E7D8" stroke-opacity="0.12"/>
-  <rect x="836" y="290" width="118" height="405" rx="22" fill="#1C1C25" stroke="#F1E7D8" stroke-opacity="0.12"/>
-  <rect x="246" y="600" width="66" height="68" rx="16" fill="url(#bar)"/>
-  <rect x="400" y="556" width="66" height="112" rx="16" fill="url(#bar)"/>
-  <rect x="554" y="472" width="66" height="196" rx="16" fill="url(#bar)"/>
-  <rect x="708" y="392" width="66" height="276" rx="16" fill="url(#bar)"/>
-  <rect x="862" y="334" width="66" height="334" rx="16" fill="url(#bar)"/>
-  <circle cx="529" cy="438" r="10" fill="#F0E3D2"/>
-  <circle cx="683" cy="350" r="10" fill="#F0E3D2"/>
-  <circle cx="837" cy="288" r="10" fill="#F0E3D2"/>
+  <rect width="1200" height="900" rx="48" fill="#0A0A0D"/>
+  <rect x="24" y="24" width="1152" height="852" rx="36" fill="url(#bg)"/>
+
+  <circle cx="938" cy="640" r="220" fill="url(#goldGlow)" opacity="0.28"/>
+  <circle cx="266" cy="234" r="170" fill="url(#blueGlow)" opacity="0.2"/>
+
+  <g opacity="0.16">
+    <path d="M122 736H1078" stroke="#E8DDCE"/>
+    <path d="M122 602H1078" stroke="#E8DDCE"/>
+    <path d="M122 468H1078" stroke="#E8DDCE"/>
+    <path d="M122 334H1078" stroke="#E8DDCE"/>
+    <path d="M122 200H1078" stroke="#E8DDCE"/>
+  </g>
+
+  <path d="M174 676C280 648 358 602 434 532C522 452 590 388 664 346C752 296 846 270 1006 286" stroke="url(#arcOne)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M174 722C314 692 418 642 508 554C585 479 651 432 730 410C807 388 888 398 1022 454" stroke="url(#arcTwo)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M190 604C286 556 358 498 422 432C508 344 579 286 662 234C744 183 846 162 1018 174" stroke="url(#arcThree)" stroke-width="2.4" stroke-linecap="round"/>
+
+  <g>
+    <rect x="210" y="560" width="126" height="160" rx="24" fill="#15151B" stroke="#E8DDCE" stroke-opacity="0.12"/>
+    <rect x="374" y="506" width="126" height="214" rx="24" fill="#17171D" stroke="#E8DDCE" stroke-opacity="0.12"/>
+    <rect x="538" y="424" width="126" height="296" rx="24" fill="#191920" stroke="#E8DDCE" stroke-opacity="0.12"/>
+    <rect x="702" y="336" width="126" height="384" rx="24" fill="#1A1A22" stroke="#E8DDCE" stroke-opacity="0.12"/>
+    <rect x="866" y="270" width="126" height="450" rx="24" fill="#1B1B24" stroke="#E8DDCE" stroke-opacity="0.12"/>
+
+    <rect x="236" y="594" width="74" height="98" rx="18" fill="url(#barFill)"/>
+    <rect x="400" y="538" width="74" height="154" rx="18" fill="url(#barFill)"/>
+    <rect x="564" y="454" width="74" height="238" rx="18" fill="url(#barFill)"/>
+    <rect x="728" y="364" width="74" height="328" rx="18" fill="url(#barFill)"/>
+    <rect x="892" y="296" width="74" height="396" rx="18" fill="url(#barFill)"/>
+  </g>
+
+  <g filter="url(#softGlow)">
+    <circle cx="538" cy="424" r="10" fill="#F1E7D8"/>
+    <circle cx="702" cy="336" r="10" fill="#F1E7D8"/>
+    <circle cx="866" cy="270" r="10" fill="#F1E7D8"/>
+  </g>
+
+  <g opacity="0.95">
+    <rect x="150" y="114" width="260" height="48" rx="24" fill="#111118" stroke="#E8DDCE" stroke-opacity="0.18"/>
+    <text x="186" y="145" fill="#E8DDCE" font-family="Manrope, Arial, sans-serif" font-size="18" letter-spacing="0.24em">TRANSFORMATION</text>
+  </g>
+
   <defs>
-    <linearGradient id="bg" x1="600" y1="28" x2="600" y2="872" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#111118"/>
-      <stop offset="1" stop-color="#0C0C11"/>
+    <linearGradient id="bg" x1="600" y1="24" x2="600" y2="876" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111117"/>
+      <stop offset="1" stop-color="#0D0D11"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(936 624) rotate(90) scale(212)">
-      <stop stop-color="#D6B38B" stop-opacity="0.48"/>
-      <stop offset="1" stop-color="#D6B38B" stop-opacity="0"/>
+    <radialGradient id="goldGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(938 640) rotate(90) scale(220)">
+      <stop stop-color="#D7B187" stop-opacity="0.78"/>
+      <stop offset="1" stop-color="#D7B187" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glowTwo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(252 248) rotate(90) scale(164)">
-      <stop stop-color="#6A7FB0" stop-opacity="0.28"/>
-      <stop offset="1" stop-color="#6A7FB0" stop-opacity="0"/>
+    <radialGradient id="blueGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(266 234) rotate(90) scale(170)">
+      <stop stop-color="#6C80B0" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#6C80B0" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="flowOne" x1="180" y1="510" x2="911" y2="510" gradientUnits="userSpaceOnUse">
+    <linearGradient id="arcOne" x1="174" y1="459" x2="1006" y2="459" gradientUnits="userSpaceOnUse">
       <stop stop-color="#E8DDCE"/>
       <stop offset="1" stop-color="#7A6855"/>
     </linearGradient>
-    <linearGradient id="flowTwo" x1="180" y1="552" x2="1014" y2="552" gradientUnits="userSpaceOnUse">
+    <linearGradient id="arcTwo" x1="174" y1="540" x2="1022" y2="540" gradientUnits="userSpaceOnUse">
       <stop stop-color="#7A6855"/>
-      <stop offset="0.52" stop-color="#E8DDCE"/>
-      <stop offset="1" stop-color="#6A7FB0"/>
+      <stop offset="0.56" stop-color="#F1E7D8"/>
+      <stop offset="1" stop-color="#6C80B0"/>
     </linearGradient>
-    <linearGradient id="flowThree" x1="182" y1="422" x2="1014" y2="422" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#6A7FB0"/>
-      <stop offset="0.58" stop-color="#E8DDCE"/>
+    <linearGradient id="arcThree" x1="190" y1="390" x2="1018" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6C80B0"/>
+      <stop offset="0.5" stop-color="#F1E7D8"/>
       <stop offset="1" stop-color="#7A6855"/>
     </linearGradient>
-    <linearGradient id="bar" x1="279" y1="334" x2="279" y2="668" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#EDE1D0"/>
-      <stop offset="1" stop-color="#A68D73"/>
+    <linearGradient id="barFill" x1="273" y1="296" x2="273" y2="692" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEE2D1"/>
+      <stop offset="1" stop-color="#A58B70"/>
     </linearGradient>
+    <filter id="softGlow" x="522" y="254" width="360" height="186" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+      <feGaussianBlur stdDeviation="3" result="effect1_foregroundBlur_0_1"/>
+    </filter>
   </defs>
 </svg>
