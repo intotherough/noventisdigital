@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Noventis Digital is the website and client portal for John Byrne, covering AI consulting, product development and private quote sharing."
+    />
+    <script>
+      (function (location) {
+        if (location.search[1] === '/') {
+          var decoded = location.search
+            .slice(1)
+            .split('&')
+            .map(function (segment) {
+              return segment.replace(/~and~/g, '&')
+            })
+            .join('?')
+
+          window.history.replaceState(null, '', location.pathname.slice(0, -1) + decoded + location.hash)
+        }
+      })(window.location)
+    </script>
+    <title>Noventis Digital</title>
+    <script type="module" crossorigin src="/assets/index-D2EyArEz.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D1I9m1V4.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

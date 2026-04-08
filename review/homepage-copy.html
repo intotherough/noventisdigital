@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Noventis Homepage Review Pack</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0a0d;
+        --panel: rgba(255, 250, 244, 0.04);
+        --line: rgba(255, 245, 232, 0.12);
+        --text: #f1ece3;
+        --muted: #bdb4a5;
+        --accent: #ece1d2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top, rgba(122, 106, 85, 0.18), transparent 32%),
+          #0a0a0d;
+        color: var(--text);
+      }
+
+      main {
+        width: min(860px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 3rem 0 4rem;
+      }
+
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: clamp(2.2rem, 6vw, 4.2rem);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .panel {
+        margin-top: 1.4rem;
+        padding: 1.25rem;
+        border: 1px solid var(--line);
+        border-radius: 1.25rem;
+        background: var(--panel);
+      }
+
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Homepage Review Pack</h1>
+      <p>
+        Static review context for LLM copy work. Use the plain-text version for direct prompt input:
+        <a href="/review/homepage-copy.txt">/review/homepage-copy.txt</a>
+      </p>
+      <div class="panel">
+        <p>
+          This file exists so another LLM can critique the homepage copy without needing to render the SPA.
+          It contains the current section-by-section copy, brand constraints, and a ready-made review prompt.
+        </p>
+      </div>
+    </main>
+  </body>
+</html>

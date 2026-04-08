@@ -1,0 +1,104 @@
+Noventis Digital homepage review pack
+Generated: 2026-04-08
+Live site: https://noventisdigital.co.uk/
+Purpose: This file exists so another LLM can critique and rewrite the homepage copy without needing to render the SPA.
+
+Brand direction and constraints
+- Company positioning: fractional CTO and AI build partner
+- Founder positioning: CTO, technology director, consultant, executive, AI expert
+- Tone: senior, premium, direct, commercially credible, understated
+- Visual direction: restrained dark theme, subtle motion, closer to Anthropic Glasswing than a generic agency site
+- Avoid: generic agency language, hypey AI fluff, consultancy cliches, vague transformation wording, public mention of client-private material
+- Keep in mind: the client portal exists, but it is not the main homepage story
+
+Rewrite goal
+- Make the homepage sound sharper, more experienced, and more commercially grounded
+- Preserve brevity and elegance
+- Keep the first-person voice
+- Strengthen proof, specificity, and buyer confidence without sounding inflated
+
+Requested output format for the rewrite model
+1. Revised homepage copy section by section
+2. Optional alternate hero headline options
+3. Short notes on any structural improvements worth making
+
+Current homepage structure and copy
+
+Header
+- Brand: NOVENTIS
+- Strapline: Fractional CTO and AI build partner.
+- Nav: Work / Approach / Contact
+- Header CTA 1: hello@noventisdigital.co.uk
+- Header CTA 2: Client portal
+
+Hero
+- Eyebrow: Fractional CTO. AI strategy. Hands-on build.
+- Headline line 1: Most AI pilots
+- Headline line 2: never reach production.
+- Headline line 3: I'm the person you call
+- Headline line 4: when yours has to.
+- Supporting copy: Senior technical leadership, AI architecture, and engineering delivery for companies that need both the judgment of a CTO and someone who can still open the editor.
+- Primary CTA: Book a 30-minute call
+- Secondary CTA: Client portal
+- Ledger items: Audit & Roadmap / Build / Support & Evolve / Fractional CTO
+
+About section
+- Eyebrow: About
+- Heading: Built in production.
+- Paragraph 1: I've spent the last few years putting AI into production inside a real business, not a lab. Noventis is where I do the same work for a small number of outside clients.
+- Paragraph 2: That gap is what I close. Sometimes that means a written roadmap and an honest read on your current vendors. Sometimes it means showing up and building the thing. Sometimes it means being the senior technical voice in the room when the decisions actually get made.
+
+Engagements section
+- Eyebrow: Engagements
+- Heading: Three solutions. Pick the one that fits where you are.
+- Section deck: The work is intentionally narrow: a clear diagnosis, a clean build, or ongoing senior technical judgment where it actually matters.
+
+Engagement card 1
+- Kicker: Fixed scope. Defined deliverable.
+- Title: Audit & Roadmap
+- Body: I look at what you've built, what you're paying for, and where AI would actually move the needle. You get a written roadmap, an honest read on your current stack and vendors, and a prioritised plan any competent engineer could pick up and run.
+- Best for: Leadership teams who suspect they're spending money in the wrong places and want a second opinion that isn't trying to sell them a platform.
+
+Engagement card 2
+- Kicker: Sprint or ongoing.
+- Title: Build
+- Body: Hands-on engineering for the work your team can't get to. Production AI features, internal tools, integrations, evaluation harnesses, and the unglamorous infrastructure that makes AI products actually work in front of real users.
+- Best for: Companies with a clear thing they need built and no one available to build it properly.
+
+Engagement card 3
+- Kicker: Ongoing retainer.
+- Title: Support & Evolve
+- Body: A few days a month of senior technical judgment. Architecture reviews, hiring help, vendor decisions, board prep, and being the person your team can call when something is on fire at 9pm.
+- Best for: Founders or leadership teams who need a CTO in the room but don't yet need one on payroll.
+
+Approach section
+- Eyebrow: How I work
+- Heading: Three principles. Everything else is detail.
+
+Principle 1
+- Title: Build before deck
+- Body: Prototypes tell the truth faster than slides. Most engagements have something running inside the first week. Strategy documents that are not grounded in working code tend to age badly.
+
+Principle 2
+- Title: Own more than you rent
+- Body: Most companies are paying monthly for tools they could have built once. I'll tell you which ones, and which ones to keep paying for. Subscription sprawl is the most common waste I find.
+
+Principle 3
+- Title: Boring infrastructure first
+- Body: The interesting AI work only matters if the plumbing underneath it is solid. Logging, evals, deployment, observability, cost control. The stuff nobody puts on the homepage.
+
+Contact section
+- Eyebrow: Get in touch
+- Heading: If this sounds like the right fit, send a note.
+- Supporting copy: A short message about where you are and what's stuck is enough to start. No obligations, and it either ends with a clear next step or an honest "this isn't for me, here's who you should talk to instead."
+- Primary CTA: hello@noventisdigital.co.uk
+- Secondary CTA: Book a call
+- Closing panel lines: Audit & Roadmap / Build / Support & Evolve
+
+Footer
+- Brand line: NOVENTIS DIGITAL
+- Footer copy: Fractional CTO and AI build partner. Based in the UK, working with teams everywhere.
+- Footer links: hello@noventisdigital.co.uk / Client portal
+
+Review prompt you can give another model
+Please critique and rewrite this homepage copy for a premium consultancy positioned as a fractional CTO and AI build partner. The founder is an experienced CTO / technology director / consultant / executive. The site design is dark, minimalist, and restrained. The copy should feel sharper, more authoritative, commercially credible, and less like a generic agency site. Keep it concise. Avoid hypey AI phrasing and vague transformation language. Return improved copy section by section, and give 3 alternate hero headline options.

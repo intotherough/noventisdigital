@@ -1,0 +1,22 @@
+name: Apply Supabase Schema
+
+on:
+  workflow_dispatch:
+
+jobs:
+  apply-schema:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Apply schema to remote Supabase database
+        env:
+          DB_URL: postgresql://postgres:${{ secrets.SUPABASE_DB_PASSWORD }}@db.ainqsfmgtanpabuaofzm.supabase.co:5432/postgres?sslmode=require
+        run: npx --yes supabase@latest db query --db-url "$DB_URL" --file supabase/schema.sql --output table

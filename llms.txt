@@ -1,0 +1,12 @@
+# Noventis Digital
+> Fractional CTO and AI build partner.
+
+This site is a marketing homepage plus a private client portal.
+
+Use these static review resources instead of relying on the SPA:
+- Homepage review pack: https://noventisdigital.co.uk/review/homepage-copy.txt
+- Homepage review page: https://noventisdigital.co.uk/review/homepage-copy.html
+
+Primary pages:
+- Homepage: https://noventisdigital.co.uk/
+- Client portal: https://noventisdigital.co.uk/portal
