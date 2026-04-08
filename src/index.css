@@ -590,17 +590,18 @@ p {
 .intro-shell {
   grid-template-columns: minmax(0, 1.12fr) minmax(18rem, 0.88fr);
   align-items: center;
-  gap: 2rem;
+  gap: 2.4rem;
 }
 
-.intro-grid {
-  grid-template-columns: minmax(13rem, 0.58fr) minmax(0, 1.42fr);
-  align-items: start;
-  gap: 3rem;
+.intro-copy {
+  display: grid;
+  gap: 1.35rem;
+  align-content: start;
+  max-width: 40rem;
 }
 
 .intro-lead {
-  max-width: 14rem;
+  max-width: 20rem;
 }
 
 .ambient-panel {
@@ -714,18 +715,19 @@ p {
   max-width: 18ch !important;
 }
 
+.section-title-clearance {
+  line-height: 1.1 !important;
+  padding-bottom: 0.28em;
+}
+
 .intro-title {
-  max-width: 8ch !important;
+  max-width: none !important;
 }
 
 .body-stack {
   display: grid;
   gap: 1rem;
   max-width: 38rem;
-}
-
-.body-stack--intro {
-  padding-top: 0.85rem;
 }
 
 .body-stack p,
@@ -964,6 +966,10 @@ p {
   display: grid;
   gap: 0.8rem;
   margin-bottom: 2rem;
+}
+
+.section-heading--approach {
+  margin-bottom: 2.9rem;
 }
 
 .principle-card::before,
@@ -1432,7 +1438,6 @@ p {
 
   .hero-ledger,
   .intro-shell,
-  .intro-grid,
   .section-heading--split,
   .portal-login-grid,
   .portal-layout,
@@ -1455,10 +1460,6 @@ p {
   .section-deck {
     justify-self: start;
     max-width: none;
-  }
-
-  .body-stack--intro {
-    padding-top: 0;
   }
 
   .section-heading--ambient {

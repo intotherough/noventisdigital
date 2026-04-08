@@ -151,7 +151,7 @@ export function HomePage() {
 
         <section className="section container intro-section">
           <div className="intro-shell">
-            <div className="intro-grid">
+            <div className="intro-copy">
               <div className="intro-lead">
                 <p className="eyebrow">About</p>
                 <h2 className="section-title-wide intro-title">
@@ -159,7 +159,7 @@ export function HomePage() {
                 </h2>
               </div>
 
-              <div className="body-stack body-stack--intro">
+              <div className="body-stack">
                 <p>
                   I&apos;ve spent the last few years putting AI into production
                   inside a real business, not a lab. Noventis is where I do the
@@ -237,7 +237,7 @@ export function HomePage() {
         </section>
 
         <section className="section container" id="approach">
-          <div className="section-heading section-heading--ambient">
+          <div className="section-heading section-heading--ambient section-heading--approach">
             <div aria-hidden="true" className="section-aura section-aura--approach">
               <span className="section-aura-ring section-aura-ring--outer" />
               <span className="section-aura-ring section-aura-ring--inner" />
@@ -248,7 +248,9 @@ export function HomePage() {
               ))}
             </div>
             <p className="eyebrow">How I work</p>
-            <h2 className="section-title-wide">Three principles. Everything else is detail.</h2>
+            <h2 className="section-title-wide section-title-clearance">
+              Three principles. Everything else is detail.
+            </h2>
           </div>
 
           <div className="principle-grid">
