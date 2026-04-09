@@ -332,6 +332,17 @@ p {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   box-shadow: var(--shadow);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.hero-comet:hover {
+  transform: scale(1.08);
+}
+
+.hero-comet.is-popped {
+  animation: bubble-pop 500ms ease forwards;
 }
 
 .hero-comet--one {
@@ -568,6 +579,17 @@ p {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   box-shadow: var(--shadow);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.section-aura-chip:hover {
+  transform: scale(1.08);
+}
+
+.section-aura-chip.is-popped {
+  animation: bubble-pop 500ms ease forwards;
 }
 
 .section-aura-chip--1 {
@@ -696,6 +718,16 @@ p {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.ambient-chip:hover {
+  transform: scale(1.08);
+}
+
+.ambient-chip.is-popped {
+  animation: bubble-pop 500ms ease forwards;
 }
 
 .ambient-chip--1 {
@@ -1801,6 +1833,29 @@ p {
 
   50% {
     transform: translate3d(0.4rem, -0.8rem, 0);
+  }
+}
+
+@keyframes bubble-pop {
+  0% {
+    transform: scale(1);
+    border-color: var(--copper-soft);
+  }
+
+  30% {
+    transform: scale(1.35);
+    border-color: var(--copper);
+    background: rgba(196, 136, 77, 0.18);
+  }
+
+  60% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+    border-color: var(--copper-soft);
+    background: rgba(196, 136, 77, 0.06);
   }
 }
 

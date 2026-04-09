@@ -94,9 +94,39 @@ export function HomePage() {
             <div aria-hidden="true" className="hero-aura">
               <span className="hero-orbit hero-orbit--outer" />
               <span className="hero-orbit hero-orbit--inner" />
-              <span className="hero-comet hero-comet--one">Plan</span>
-              <span className="hero-comet hero-comet--two">Build</span>
-              <span className="hero-comet hero-comet--three">Run</span>
+              <span
+                className="hero-comet hero-comet--one"
+                onClick={(e) => {
+                  const el = e.currentTarget
+                  el.classList.remove('is-popped')
+                  void el.offsetWidth
+                  el.classList.add('is-popped')
+                }}
+              >
+                Plan
+              </span>
+              <span
+                className="hero-comet hero-comet--two"
+                onClick={(e) => {
+                  const el = e.currentTarget
+                  el.classList.remove('is-popped')
+                  void el.offsetWidth
+                  el.classList.add('is-popped')
+                }}
+              >
+                Build
+              </span>
+              <span
+                className="hero-comet hero-comet--three"
+                onClick={(e) => {
+                  const el = e.currentTarget
+                  el.classList.remove('is-popped')
+                  void el.offsetWidth
+                  el.classList.add('is-popped')
+                }}
+              >
+                Run
+              </span>
             </div>
 
             <p className="eyebrow motion-reveal motion-reveal--1">
@@ -171,7 +201,16 @@ export function HomePage() {
               <span className="ambient-pulse ambient-pulse--one" />
               <span className="ambient-pulse ambient-pulse--two" />
               {introSignals.map((signal, index) => (
-                <span className={`ambient-chip ambient-chip--${index + 1}`} key={signal}>
+                <span
+                  className={`ambient-chip ambient-chip--${index + 1}`}
+                  key={signal}
+                  onClick={(e) => {
+                    const el = e.currentTarget
+                    el.classList.remove('is-popped')
+                    void el.offsetWidth
+                    el.classList.add('is-popped')
+                  }}
+                >
                   {signal}
                 </span>
               ))}
@@ -214,7 +253,16 @@ export function HomePage() {
               <span className="section-aura-ring section-aura-ring--outer" />
               <span className="section-aura-ring section-aura-ring--inner" />
               {approachSignals.map((signal, index) => (
-                <span className={`section-aura-chip section-aura-chip--${index + 1}`} key={signal}>
+                <span
+                  className={`section-aura-chip section-aura-chip--${index + 1}`}
+                  key={signal}
+                  onClick={(e) => {
+                    const el = e.currentTarget
+                    el.classList.remove('is-popped')
+                    void el.offsetWidth
+                    el.classList.add('is-popped')
+                  }}
+                >
                   {signal}
                 </span>
               ))}
