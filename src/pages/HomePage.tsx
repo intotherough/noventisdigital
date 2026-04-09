@@ -8,8 +8,6 @@ const engagements = [
       "I look at what you've built, what you're paying for, and where AI would actually move the needle. You get a written roadmap, an honest read on your current stack and vendors, and a prioritised plan any competent engineer could pick up and run.",
     bestFor:
       "Leadership teams who suspect they're spending money in the wrong places and want a second opinion that isn't trying to sell them a platform.",
-    image: '/images/ai-strategy-visual.svg',
-    alt: 'Abstract AI strategy visual with luminous network lines and flowing motion.',
   },
   {
     kicker: 'Sprint or ongoing.',
@@ -18,8 +16,6 @@ const engagements = [
       "Hands-on engineering for the work your team can't get to. Production AI features, internal tools, integrations, evaluation harnesses, and the unglamorous infrastructure that makes AI products actually work in front of real users.",
     bestFor:
       'Companies with a clear thing they need built and no one available to build it properly.',
-    image: '/images/portal-systems-visual.svg',
-    alt: 'Abstract leadership visual with layered interface geometry and directional movement.',
   },
   {
     kicker: 'Ongoing retainer.',
@@ -28,8 +24,6 @@ const engagements = [
       "A few days a month of senior technical judgment. Architecture reviews, hiring help, vendor decisions, board prep, and being the person your team can call when something is on fire at 9pm.",
     bestFor:
       "Founders or leadership teams who need a CTO in the room but don't yet need one on payroll.",
-    image: '/images/transformation-visual.svg',
-    alt: 'Abstract business transformation visual with layered signals and upward movement.',
   },
 ]
 
@@ -58,7 +52,7 @@ const ledgerItems = [
   'Fractional CTO',
 ]
 
-const introSignals = ['CTO', 'Build', 'AI']
+const introSignals = ['CTO', 'Build', 'AI', 'Audit', 'Consulting', 'Programming', 'Security', 'Deployment', 'CI/CD', 'TDD', 'Coding']
 
 const workSignals = ['Audit', 'Build', 'Support']
 
@@ -205,32 +199,25 @@ export function HomePage() {
               <h2 className="section-title-wide">Three solutions. Pick the one that fits where you are.</h2>
             </div>
             <p className="section-deck">
-              The work is intentionally narrow: a clear diagnosis, a clean build,
-              or ongoing senior technical judgment where it actually matters.
+              Diagnosis, delivery, or ongoing technical leadership. Scoped tight
+              and pointed at the work that actually matters.
             </p>
           </div>
 
           <div className="capability-grid">
             {engagements.map((engagement, index) => (
               <article className="capability-card" key={engagement.title}>
-                <div className="capability-image-wrap">
-                  <img
-                    alt={engagement.alt}
-                    className="capability-image"
-                    loading="lazy"
-                    src={engagement.image}
-                  />
-                  <span className="capability-index">{`0${index + 1}`}</span>
+                <div className="capability-hero-panel">
+                  <span className="capability-hero-number">{`0${index + 1}`}</span>
+                  <span className="capability-hero-label">{engagement.title}</span>
                 </div>
-                <div className="capability-copy">
-                  <p className="eyebrow">{engagement.kicker}</p>
-                  <h3>{engagement.title}</h3>
-                  <p>{engagement.description}</p>
-                  <p className="capability-best-for">
-                    <span>Best for</span>
-                    {engagement.bestFor}
-                  </p>
-                </div>
+                <p className="eyebrow">{engagement.kicker}</p>
+                <h3>{engagement.title}</h3>
+                <p className="capability-description">{engagement.description}</p>
+                <p className="capability-best-for">
+                  <span>Best for</span>
+                  {engagement.bestFor}
+                </p>
               </article>
             ))}
           </div>

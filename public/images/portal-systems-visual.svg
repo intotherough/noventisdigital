@@ -2,68 +2,38 @@
   <rect width="1200" height="900" rx="48" fill="#0A0A0D"/>
   <rect x="24" y="24" width="1152" height="852" rx="36" fill="url(#bg)"/>
 
-  <circle cx="934" cy="198" r="176" fill="url(#goldGlow)" opacity="0.26"/>
-  <circle cx="250" cy="712" r="184" fill="url(#blueGlow)" opacity="0.22"/>
+  <circle cx="620" cy="430" r="240" fill="url(#glow)" opacity="0.14"/>
 
-  <g transform="translate(164 174) rotate(-6 436 250)">
-    <rect x="0" y="0" width="872" height="498" rx="34" fill="#101016" stroke="#E8DDCE" stroke-opacity="0.12"/>
-    <rect x="42" y="40" width="788" height="58" rx="22" fill="#14141A" stroke="#E8DDCE" stroke-opacity="0.08"/>
-    <rect x="42" y="134" width="248" height="314" rx="26" fill="#131319" stroke="#E8DDCE" stroke-opacity="0.1"/>
-    <rect x="318" y="134" width="512" height="314" rx="26" fill="#121218" stroke="#E8DDCE" stroke-opacity="0.1"/>
-    <rect x="68" y="172" width="130" height="16" rx="8" fill="#E8DDCE" fill-opacity="0.16"/>
-    <rect x="68" y="202" width="178" height="10" rx="5" fill="#E8DDCE" fill-opacity="0.08"/>
-    <rect x="68" y="228" width="154" height="10" rx="5" fill="#E8DDCE" fill-opacity="0.06"/>
-    <rect x="68" y="268" width="156" height="118" rx="18" fill="url(#miniPanel)"/>
-    <rect x="344" y="170" width="148" height="14" rx="7" fill="#E8DDCE" fill-opacity="0.16"/>
-    <rect x="344" y="198" width="232" height="10" rx="5" fill="#E8DDCE" fill-opacity="0.07"/>
-    <rect x="344" y="246" width="460" height="166" rx="22" fill="url(#mainPanel)"/>
-    <path d="M384 370C445 330 487 302 544 288C602 273 660 278 724 250" stroke="url(#flow)" stroke-width="3.5" stroke-linecap="round"/>
-    <circle cx="544" cy="288" r="10" fill="#F1E7D8"/>
-    <circle cx="724" cy="250" r="10" fill="#F1E7D8"/>
+  <g transform="translate(600 450)">
+    <rect x="-180" y="-120" width="360" height="240" rx="20" fill="none" stroke="url(#layer1)" stroke-width="1.5" transform="rotate(-4)"/>
+    <rect x="-140" y="-90" width="280" height="180" rx="16" fill="none" stroke="url(#layer2)" stroke-width="1.3" transform="rotate(2) translate(20 -16)"/>
+    <rect x="-100" y="-60" width="200" height="120" rx="12" fill="none" stroke="url(#layer3)" stroke-width="1.1" transform="rotate(-1) translate(40 -30)"/>
   </g>
 
-  <g transform="translate(358 462) rotate(7 326 158)">
-    <rect x="0" y="0" width="652" height="316" rx="30" fill="#121218" stroke="#E8DDCE" stroke-opacity="0.12"/>
-    <rect x="38" y="36" width="576" height="54" rx="20" fill="#14141A" stroke="#E8DDCE" stroke-opacity="0.08"/>
-    <rect x="38" y="118" width="242" height="154" rx="22" fill="#15151C" stroke="#E8DDCE" stroke-opacity="0.1"/>
-    <rect x="304" y="118" width="310" height="154" rx="22" fill="#131319" stroke="#E8DDCE" stroke-opacity="0.1"/>
-    <rect x="68" y="156" width="134" height="14" rx="7" fill="#E8DDCE" fill-opacity="0.14"/>
-    <rect x="68" y="184" width="174" height="10" rx="5" fill="#E8DDCE" fill-opacity="0.07"/>
-    <rect x="334" y="156" width="156" height="14" rx="7" fill="#E8DDCE" fill-opacity="0.14"/>
-    <rect x="334" y="190" width="236" height="12" rx="6" fill="#E8DDCE" fill-opacity="0.07"/>
-    <rect x="334" y="224" width="116" height="24" rx="12" fill="#F1E7D8"/>
-  </g>
-
-  <g opacity="0.95">
-    <rect x="150" y="114" width="244" height="48" rx="24" fill="#111118" stroke="#E8DDCE" stroke-opacity="0.18"/>
-    <text x="186" y="145" fill="#E8DDCE" font-family="Manrope, Arial, sans-serif" font-size="18" letter-spacing="0.24em">PORTAL SYSTEMS</text>
-  </g>
+  <circle cx="504" cy="396" r="3.5" fill="#F1E7D8" opacity="0.7"/>
+  <circle cx="696" cy="504" r="3.5" fill="#E8DDCE" opacity="0.6"/>
+  <circle cx="660" cy="368" r="4" fill="#F1E7D8" opacity="0.5"/>
 
   <defs>
     <linearGradient id="bg" x1="600" y1="24" x2="600" y2="876" gradientUnits="userSpaceOnUse">
       <stop stop-color="#111117"/>
       <stop offset="1" stop-color="#0D0D11"/>
     </linearGradient>
-    <radialGradient id="goldGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(934 198) rotate(90) scale(176)">
-      <stop stop-color="#D9C0A3" stop-opacity="0.85"/>
-      <stop offset="1" stop-color="#D9C0A3" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="blueGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(250 712) rotate(90) scale(184)">
-      <stop stop-color="#6C80B0" stop-opacity="0.75"/>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(620 430) scale(240)">
+      <stop stop-color="#6C80B0" stop-opacity="0.5"/>
       <stop offset="1" stop-color="#6C80B0" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="mainPanel" x1="574" y1="246" x2="574" y2="412" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#161620"/>
-      <stop offset="1" stop-color="#111118"/>
+    <linearGradient id="layer1" x1="420" y1="330" x2="780" y2="570" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F1E7D8" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#7A6855" stop-opacity="0.3"/>
     </linearGradient>
-    <linearGradient id="miniPanel" x1="146" y1="268" x2="146" y2="386" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#171821"/>
-      <stop offset="1" stop-color="#121218"/>
+    <linearGradient id="layer2" x1="460" y1="360" x2="740" y2="540" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E8DDCE" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#6C80B0" stop-opacity="0.35"/>
     </linearGradient>
-    <linearGradient id="flow" x1="384" y1="310" x2="724" y2="310" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#7A6855"/>
-      <stop offset="0.55" stop-color="#F1E7D8"/>
-      <stop offset="1" stop-color="#6C80B0"/>
+    <linearGradient id="layer3" x1="500" y1="390" x2="700" y2="510" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F1E7D8" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#967B5E" stop-opacity="0.4"/>
     </linearGradient>
   </defs>
 </svg>

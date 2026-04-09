@@ -703,6 +703,54 @@ p {
   animation: comet-float 9s ease-in-out -4s infinite;
 }
 
+.ambient-chip--4 {
+  top: 42%;
+  left: 6%;
+  animation: comet-float 11s ease-in-out -1s infinite;
+}
+
+.ambient-chip--5 {
+  top: 8%;
+  right: 32%;
+  animation: comet-float 9.5s ease-in-out -5s infinite;
+}
+
+.ambient-chip--6 {
+  bottom: 30%;
+  right: 8%;
+  animation: comet-float 10.5s ease-in-out -3s infinite;
+}
+
+.ambient-chip--7 {
+  top: 52%;
+  right: 24%;
+  animation: comet-float 8.5s ease-in-out -6s infinite;
+}
+
+.ambient-chip--8 {
+  bottom: 6%;
+  right: 30%;
+  animation: comet-float 12s ease-in-out -2s infinite;
+}
+
+.ambient-chip--9 {
+  top: 34%;
+  left: 34%;
+  animation: comet-float 10s ease-in-out -7s infinite;
+}
+
+.ambient-chip--10 {
+  bottom: 28%;
+  left: 42%;
+  animation: comet-float 9s ease-in-out -3.5s infinite;
+}
+
+.ambient-chip--11 {
+  top: 62%;
+  left: 14%;
+  animation: comet-float 11.5s ease-in-out -5.5s infinite;
+}
+
 .intro-grid h2,
 .section-heading h2,
 .closing-block h2,
@@ -765,15 +813,17 @@ p {
 .capability-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.2rem;
+  grid-template-rows: auto auto auto 1fr auto;
+  column-gap: 1.2rem;
+  row-gap: 0;
   margin-top: 2rem;
-  align-items: stretch;
 }
 
 .capability-card {
   display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 1rem;
+  grid-row: 1 / -1;
+  grid-template-rows: subgrid;
+  row-gap: 0.65rem;
   padding: 1rem;
   border: 1px solid var(--line);
   border-radius: 1.7rem;
@@ -793,54 +843,63 @@ p {
   border-color: var(--line-strong);
 }
 
-.capability-image-wrap {
-  position: relative;
-  overflow: hidden;
+.capability-hero-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
   border-radius: 1.25rem;
-  aspect-ratio: 1 / 1.08;
+  aspect-ratio: 1 / 0.62;
   border: 1px solid rgba(255, 245, 232, 0.08);
   background: #111118;
+  overflow: hidden;
+  position: relative;
+  transition: border-color 220ms ease;
 }
 
-.capability-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition:
-    transform 500ms ease,
-    filter 300ms ease;
-  filter: saturate(0.95) contrast(1.05);
+.capability-card:hover .capability-hero-panel {
+  border-color: var(--line-strong);
 }
 
-.capability-card:hover .capability-image {
-  transform: scale(1.04);
-  filter: saturate(1.05) contrast(1.08);
-}
-
-.capability-image-wrap .capability-index {
+.capability-hero-number {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: rgba(10, 10, 13, 0.68);
-  backdrop-filter: blur(10px);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(8rem, 16vw, 14rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: rgba(241, 231, 216, 0.04);
+  pointer-events: none;
+  user-select: none;
 }
 
-.capability-copy {
-  display: grid;
-  gap: 0.65rem;
-  padding: 0.2rem 0.15rem 0.35rem;
-  align-content: start;
+.capability-hero-label {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
-.capability-copy h3 {
+.capability-card > .eyebrow {
+  padding-top: 1rem;
+}
+
+.capability-card > h3 {
   font-family: 'Fraunces', serif;
   font-size: 2rem;
   line-height: 0.98;
   letter-spacing: -0.04em;
 }
 
-.capability-copy p:last-child {
+.capability-description {
   color: var(--muted-strong);
+  align-self: start;
 }
 
 .capability-best-for {
@@ -848,6 +907,7 @@ p {
   gap: 0.35rem;
   padding-top: 0.85rem;
   border-top: 1px solid var(--line);
+  align-self: start;
 }
 
 .capability-best-for span {
@@ -1978,9 +2038,10 @@ p {
     min-height: auto;
   }
 
-  .capability-image-wrap,
-  .capability-image {
+  .capability-hero-panel {
+    aspect-ratio: auto;
     min-height: 0;
+    padding: 1.5rem 1.4rem;
   }
 
   .ambient-panel {
@@ -2025,7 +2086,7 @@ p {
     font-size: clamp(3.4rem, 18vw, 7rem);
   }
 
-  .capability-copy h3 {
+  .capability-card > h3 {
     font-size: 1.75rem;
   }
 
