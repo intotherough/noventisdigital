@@ -40,6 +40,7 @@ export function useAdminData(
   const [resetPending, setResetPending] = useState(false)
   const [deletePending, setDeletePending] = useState(false)
   const [uploadPending, setUploadPending] = useState(false)
+  const [quickUploadPending, setQuickUploadPending] = useState(false)
 
   const [createForm, setCreateForm] = useState<CreateClientInput>({
     ...defaultCreateForm,
@@ -265,6 +266,52 @@ export function useAdminData(
     }
   }
 
+  const handleQuickUploadPack = async (clientId: string, file: File) => {
+    if (!file) {
+      callbacks.onError('Drop a PDF to upload.')
+      return
+    }
+
+    if (file.type && file.type !== 'application/pdf') {
+      callbacks.onError('Only PDF files can be uploaded to client packs.')
+      return
+    }
+
+    const targetClient = clients.find((client) => client.id === clientId)
+    if (!targetClient) {
+      callbacks.onError('That client could not be found.')
+      return
+    }
+
+    const bareName = file.name.replace(/\.pdf$/i, '')
+
+    callbacks.clearMessages()
+    setQuickUploadPending(true)
+
+    try {
+      await uploadClientPack({
+        userId: targetClient.id,
+        title: bareName || `${targetClient.company} pack`,
+        summary: `Uploaded via drag and drop on ${new Date().toLocaleDateString('en-GB')}.`,
+        status: 'Awaiting approval',
+        validUntil: '',
+        timeline: 'TBC',
+        notes: '',
+        totalAmount: 0,
+        scope: [],
+        documentLabel: bareName || file.name,
+        documentDescription: `Uploaded via drag and drop.`,
+        file,
+      })
+      await refreshDashboardData()
+      callbacks.onStatus(`Uploaded ${file.name} to ${targetClient.company}.`)
+    } catch (error) {
+      callbacks.onError(getAuthErrorMessage(error))
+    } finally {
+      setQuickUploadPending(false)
+    }
+  }
+
   function resetAllData() {
     setClients([])
     setAuditLogs([])
@@ -280,6 +327,7 @@ export function useAdminData(
     resetPending,
     deletePending,
     uploadPending,
+    quickUploadPending,
     createForm,
     editEmail,
     editName,
@@ -320,6 +368,7 @@ export function useAdminData(
     handleResetPassword,
     handleDeleteClient,
     handleUploadPack,
+    handleQuickUploadPack,
     resetAllData,
   }
 }

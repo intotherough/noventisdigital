@@ -1596,6 +1596,59 @@ p {
   padding-right: 0.2rem;
 }
 
+.admin-directory-hint {
+  margin: 0.8rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.admin-client-drop-target {
+  transition:
+    transform 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.admin-client-drop-target.is-drag-over {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+  transform: translateY(-1px);
+}
+
+.admin-upload-dropzone {
+  position: relative;
+  transition:
+    border-color 220ms ease,
+    background-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.admin-upload-dropzone.is-drag-over {
+  border-color: var(--accent);
+  background-color: var(--accent-soft);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.admin-upload-dropzone.has-file {
+  border-color: var(--line-strong);
+}
+
+.admin-dropzone-hint {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.admin-upload-dropzone.has-file .admin-dropzone-hint {
+  color: var(--accent);
+}
+
 .admin-stage {
   min-width: 0;
 }

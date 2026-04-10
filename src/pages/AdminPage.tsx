@@ -159,8 +159,12 @@ export function AdminPage() {
               selectedClient={data.selectedClient}
               activeView={activeView}
               loadingData={data.loadingData}
+              quickUploadPending={data.quickUploadPending}
               onSelectView={(view) => navigateToView(view)}
               onSelectClient={handleSelectClient}
+              onDropFile={(clientId, file) => {
+                void data.handleQuickUploadPack(clientId, file)
+              }}
             />
 
             <div className="admin-stage">
@@ -242,6 +246,7 @@ export function AdminPage() {
                   onPackLabelChange={data.setPackLabel}
                   onPackDescriptionChange={data.setPackDescription}
                   onPackFileChange={data.setPackFile}
+                  onPackLabelAutoFill={data.setPackLabel}
                   onUploadPack={data.handleUploadPack}
                   onSelectView={(view) => navigateToView(view)}
                 />

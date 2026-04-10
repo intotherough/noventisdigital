@@ -1,4 +1,5 @@
-import type { FormEvent } from 'react'
+import type { DragEvent, FormEvent } from 'react'
+import { useState } from 'react'
 import { formatDateTime } from '../../lib/formatting.ts'
 import type { AdminClientRecord } from '../../types.ts'
 import type { AdminView } from './types.ts'
@@ -28,6 +29,7 @@ type DocumentsViewProps = {
   onPackLabelChange: (value: string) => void
   onPackDescriptionChange: (value: string) => void
   onPackFileChange: (file: File | null) => void
+  onPackLabelAutoFill: (label: string) => void
   onUploadPack: (event: FormEvent<HTMLFormElement>) => void
   onSelectView: (view: AdminView) => void
 }
@@ -57,9 +59,53 @@ export function DocumentsView({
   onPackLabelChange,
   onPackDescriptionChange,
   onPackFileChange,
+  onPackLabelAutoFill,
   onUploadPack,
   onSelectView,
 }: DocumentsViewProps) {
+  const [isDragOver, setIsDragOver] = useState(false)
+
+  const handleDragOver = (event: DragEvent<HTMLFormElement>) => {
+    if (!selectedClient) {
+      return
+    }
+    if (Array.from(event.dataTransfer.items).some((item) => item.kind === 'file')) {
+      event.preventDefault()
+      event.dataTransfer.dropEffect = 'copy'
+      setIsDragOver(true)
+    }
+  }
+
+  const handleDragLeave = (event: DragEvent<HTMLFormElement>) => {
+    if (event.currentTarget === event.target) {
+      setIsDragOver(false)
+    }
+  }
+
+  const handleDrop = (event: DragEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsDragOver(false)
+
+    if (!selectedClient) {
+      return
+    }
+
+    const file = event.dataTransfer.files?.[0]
+    if (!file) {
+      return
+    }
+
+    if (file.type && file.type !== 'application/pdf') {
+      return
+    }
+
+    onPackFileChange(file)
+    const bareName = file.name.replace(/\.pdf$/i, '')
+    if (bareName) {
+      onPackLabelAutoFill(bareName)
+    }
+  }
+
   return (
     <div className="admin-view">
       <div className="admin-stage-header">
@@ -120,12 +166,24 @@ export function DocumentsView({
             )}
           </article>
 
-          <form className="detail-card admin-upload-card" onSubmit={onUploadPack}>
+          <form
+            className={`detail-card admin-upload-card admin-upload-dropzone ${
+              isDragOver ? 'is-drag-over' : ''
+            } ${packFile ? 'has-file' : ''}`}
+            onDragEnter={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onSubmit={onUploadPack}
+          >
             <div className="section-card-heading">
               <div>
                 <p className="eyebrow">New upload</p>
                 <h3>Attach a pack</h3>
               </div>
+              <span className="admin-dropzone-hint">
+                {packFile ? `Ready: ${packFile.name}` : 'Drop a PDF anywhere on this card'}
+              </span>
             </div>
 
             <div className="admin-form-grid">
