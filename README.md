@@ -238,5 +238,3 @@ Frontend files:
 - `/admin` also works through the same SPA fallback
 - approval actions currently open email replies rather than writing back into Supabase
 - do not place confidential client PDFs under `public/`; anything there is public on the web
-- for private client documents, use private storage plus signed or authenticated access rather than a static public asset
-- if you want in-app approval, I would add either a small admin backend or Supabase edge functions next
