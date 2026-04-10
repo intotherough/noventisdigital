@@ -857,9 +857,9 @@ p {
 
 .capability-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: auto auto auto 1fr auto;
-  column-gap: 1.2rem;
+  column-gap: 1rem;
   row-gap: 0;
   margin-top: 2rem;
 }
@@ -1053,6 +1053,26 @@ p {
 
 .principle-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.principle-groups {
+  display: grid;
+  gap: 2.4rem;
+  margin-top: 2rem;
+}
+
+.principle-group {
+  display: grid;
+  gap: 1rem;
+}
+
+.principle-group-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0;
 }
 
 .principle-card {

@@ -25,6 +25,14 @@ const engagements = [
     bestFor:
       "Founders or leadership teams who need a CTO in the room but don't yet need one on payroll.",
   },
+  {
+    kicker: 'Embedded. Ongoing.',
+    title: 'Fractional Technology Lead',
+    description:
+      'A continuous relationship where I own technology direction alongside your leadership team. Strategy, roadmap, AI adoption, infrastructure and security posture, and the team enablement that turns tools into day-to-day fluency. One person accountable, working a defined number of days per month.',
+    bestFor:
+      'Organisations ready to treat technology as strategy rather than a ticket queue, where a full-time Head of IT or CTO is not yet justified but the capability is needed now.',
+  },
 ]
 
 const principles = [
@@ -42,6 +50,24 @@ const principles = [
     title: 'Boring infrastructure first',
     description:
       'The interesting AI work only matters if the plumbing underneath it is solid. Logging, evals, deployment, observability, cost control. The stuff nobody puts on the homepage.',
+  },
+]
+
+const teamPrinciples = [
+  {
+    title: 'Plain language for leadership',
+    description:
+      'If a technology decision cannot be explained to a CEO or a board in plain language, it is usually wrong or hiding something. My job includes translation, not just judgment.',
+  },
+  {
+    title: 'Fluency beats prototypes',
+    description:
+      'One clever AI pilot matters less than a team that uses AI well every day. Coaching and hands-on enablement raise the floor of what everyone can do, which is where the compound returns live.',
+  },
+  {
+    title: 'IT as enabler, not obstacle',
+    description:
+      'Onboarding, operations, and day-to-day tooling should feel invisible to the people using them. If the team is losing half a day a week to something that should be automated, that is the thing to fix before anything more interesting.',
   },
 ]
 
@@ -221,7 +247,7 @@ export function HomePage() {
         <section className="section container" id="work">
           <div className="section-heading section-heading--stacked">
             <p className="eyebrow">Engagements</p>
-            <h2 className="section-title-wide">Three solutions. Pick the one that fits where you are.</h2>
+            <h2 className="section-title-wide">Four ways in. Pick the one that fits where you are.</h2>
             <p className="section-deck">
               Diagnosis, delivery, or ongoing technical leadership. Scoped tight
               and pointed at the work that actually matters.
@@ -269,17 +295,34 @@ export function HomePage() {
             </div>
             <p className="eyebrow">How I work</p>
             <h2 className="section-title-wide section-title-clearance">
-              Three principles. Everything else is detail.
+              Six principles. Everything else is detail.
             </h2>
           </div>
 
-          <div className="principle-grid">
-            {principles.map((principle) => (
-              <article className="principle-card" key={principle.title}>
-                <h3>{principle.title}</h3>
-                <p>{principle.description}</p>
-              </article>
-            ))}
+          <div className="principle-groups">
+            <div className="principle-group">
+              <p className="principle-group-label">Building</p>
+              <div className="principle-grid">
+                {principles.map((principle) => (
+                  <article className="principle-card" key={principle.title}>
+                    <h3>{principle.title}</h3>
+                    <p>{principle.description}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <div className="principle-group">
+              <p className="principle-group-label">Working together</p>
+              <div className="principle-grid">
+                {teamPrinciples.map((principle) => (
+                  <article className="principle-card" key={principle.title}>
+                    <h3>{principle.title}</h3>
+                    <p>{principle.description}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
