@@ -17,6 +17,7 @@ export const defaultCreateForm: CreateClientInput = {
   fullName: '',
   company: '',
   role: 'Client',
+  sendWelcomeEmail: false,
 }
 
 export const adminViews: Array<{

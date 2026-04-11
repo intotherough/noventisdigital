@@ -177,6 +177,25 @@ export function ClientsView({
                 value={createForm.role}
               />
             </label>
+
+            <label className="admin-checkbox-row admin-span-2">
+              <input
+                checked={createForm.sendWelcomeEmail}
+                onChange={(event) =>
+                  onCreateFormChange((current) => ({
+                    ...current,
+                    sendWelcomeEmail: event.target.checked,
+                  }))
+                }
+                type="checkbox"
+              />
+              <span>
+                <strong>Send welcome email with login details</strong>
+                <small>
+                  The temporary password above is emailed to the new client. Off by default.
+                </small>
+              </span>
+            </label>
           </div>
 
           <button className="primary-button" disabled={createPending} type="submit">

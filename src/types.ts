@@ -108,6 +108,7 @@ export type CreateClientInput = {
   fullName: string
   company: string
   role: string
+  sendWelcomeEmail: boolean
 }
 
 export type UpdateClientInput = {

@@ -1,9 +1,58 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { renderWelcomeEmail } from '../_shared/emailTemplates.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
 const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+const resendApiKey = Deno.env.get('RESEND_API_KEY') ?? ''
+const emailFromAddress =
+  Deno.env.get('EMAIL_FROM_ADDRESS') ?? 'onboarding@resend.dev'
+
+type SendEmailResult = {
+  ok: boolean
+  error?: string
+}
+
+async function sendEmail(input: {
+  to: string
+  subject: string
+  text: string
+  html: string
+}): Promise<SendEmailResult> {
+  if (!resendApiKey) {
+    return { ok: false, error: 'Email provider is not configured.' }
+  }
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: emailFromAddress,
+        to: [input.to],
+        subject: input.subject,
+        text: input.text,
+        html: input.html,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '')
+      return { ok: false, error: errorText || `Resend responded ${response.status}` }
+    }
+
+    return { ok: true }
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Email send failed.',
+    }
+  }
+}
 
 type ClientProfileRow = {
   id: string
@@ -352,6 +401,7 @@ async function handleCreateClient(
   const fullName = String(payload.fullName ?? '').trim()
   const company = String(payload.company ?? '').trim()
   const role = String(payload.role ?? 'Client').trim()
+  const sendWelcomeEmail = Boolean(payload.sendWelcomeEmail)
 
   if (!email || !password || !fullName || !company) {
     throw new Error('Email, password, name and company are required.')
@@ -397,11 +447,41 @@ async function handleCreateClient(
     request,
   })
 
+  let emailStatus: { sent: boolean; error?: string } | null = null
+
+  if (sendWelcomeEmail) {
+    const rendered = renderWelcomeEmail({
+      name: fullName,
+      email,
+      password,
+    })
+
+    const result = await sendEmail({
+      to: email,
+      subject: rendered.subject,
+      text: rendered.text,
+      html: rendered.html,
+    })
+
+    emailStatus = { sent: result.ok, error: result.error }
+
+    await logAdminAudit(adminClient, actorUserId, 'client_welcome_email_sent', {
+      subjectUserId: userId,
+      metadata: {
+        email,
+        sent: result.ok,
+        error: result.error ?? null,
+      },
+      request,
+    })
+  }
+
   const clientRecord = (await listClientRecords(adminClient)).find((client) => client.id === userId)
 
   return jsonResponse({
     ok: true,
     client: clientRecord,
+    emailStatus,
   })
 }
 

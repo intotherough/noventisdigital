@@ -1,13 +1,14 @@
 /**
  * Email templates for Noventis Digital client communications.
  *
- * DUPLICATE OF supabase/functions/_shared/emailTemplates.ts. Keep the
- * two files in sync. This copy is used by the admin /admin/email-preview
- * route for design-time iteration. The edge function uses the other
- * copy for actual sending via Resend.
+ * DUPLICATE OF src/lib/emailTemplates.ts. Keep the two files in sync.
+ * The Deno edge function cannot import from src/ because TypeScript
+ * include is restricted to src/ and the two runtimes differ, so the
+ * templates live in both places. Update both when editing copy or
+ * layout.
  *
  * Each render function returns { subject, text, html } ready to hand to
- * an email provider. Templates are pure string functions with no imports.
+ * Resend. Templates are pure string functions with no external imports.
  */
 
 export type EmailTemplateId =
