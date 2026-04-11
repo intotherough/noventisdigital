@@ -2,10 +2,9 @@
  * Email templates for Noventis Digital client communications.
  *
  * DUPLICATE OF src/lib/emailTemplates.ts. Keep the two files in sync.
- * The Deno edge function cannot import from src/ because TypeScript
- * include is restricted to src/ and the two runtimes differ, so the
- * templates live in both places. Update both when editing copy or
- * layout.
+ * This copy is used by the Deno edge functions for actual sending via
+ * Resend. The src/ copy powers the admin /admin/email-preview route for
+ * design-time iteration.
  *
  * Each render function returns { subject, text, html } ready to hand to
  * Resend. Templates are pure string functions with no external imports.
@@ -16,6 +15,8 @@ export type EmailTemplateId =
   | 'new-pack'
   | 'client-upload'
   | 'password-reset'
+  | 'first-login-notification'
+  | 'quote-viewed-notification'
 
 export type RenderedEmail = {
   subject: string
@@ -235,6 +236,71 @@ ${signatureHtml()}
 }
 
 // -----------------------------------------------------------------------------
+// First login notification - sent to admin when a client signs in for the first time
+// -----------------------------------------------------------------------------
+
+export type FirstLoginNotificationVars = {
+  clientName: string
+  clientCompany: string
+  clientId: string
+}
+
+export function renderFirstLoginNotification(
+  vars: FirstLoginNotificationVars,
+): RenderedEmail {
+  const subject = `${vars.clientName} signed in for the first time`
+  const clientLink = `https://noventisdigital.co.uk/admin/clients/${vars.clientId}`
+
+  const text = `${vars.clientName} (${vars.clientCompany}) has just signed in to the Noventis Digital client portal for the first time.
+
+Open their admin record: ${clientLink}
+
+(automated notification)
+`
+
+  const body = `
+${paragraph(`<strong style="color:#ece1d2;">${vars.clientName}</strong> (${vars.clientCompany}) has just signed in to the Noventis Digital client portal for the first time.`)}
+${paragraph(`Open their admin record: ${link(clientLink)}`)}
+${paragraph('<span style="color:rgba(241,231,216,0.45);font-size:12px;">(automated notification)</span>')}
+`
+
+  return { subject, text, html: wrapHtml(body) }
+}
+
+// -----------------------------------------------------------------------------
+// Quote viewed notification - sent to admin the first time a client views a pack
+// -----------------------------------------------------------------------------
+
+export type QuoteViewedNotificationVars = {
+  clientName: string
+  clientCompany: string
+  clientId: string
+  quoteTitle: string
+}
+
+export function renderQuoteViewedNotification(
+  vars: QuoteViewedNotificationVars,
+): RenderedEmail {
+  const subject = `${vars.clientName} viewed "${vars.quoteTitle}"`
+  const clientLink = `https://noventisdigital.co.uk/admin/clients/${vars.clientId}`
+
+  const text = `${vars.clientName} (${vars.clientCompany}) just opened the pack "${vars.quoteTitle}" in the portal for the first time.
+
+Open their admin record: ${clientLink}
+
+(automated notification)
+`
+
+  const body = `
+${paragraph(`<strong style="color:#ece1d2;">${vars.clientName}</strong> (${vars.clientCompany}) just opened the pack <strong style="color:#ece1d2;">${vars.quoteTitle}</strong> in the portal for the first time.`)}
+${paragraph(`Open their admin record: ${link(clientLink)}`)}
+${paragraph('<span style="color:rgba(241,231,216,0.45);font-size:12px;">(automated notification)</span>')}
+`
+
+  return { subject, text, html: wrapHtml(body) }
+}
+
+// -----------------------------------------------------------------------------
 // Sample data for the admin preview page
 // -----------------------------------------------------------------------------
 
@@ -286,6 +352,30 @@ export const sampleTemplates: Array<{
         name: 'Stuart Handley',
         email: 'stuart.handley@spe.co.uk',
         password: 'SPE-2026-reset-q4',
+      }),
+  },
+  {
+    id: 'first-login-notification',
+    label: 'First login notification',
+    description: 'Sent to you when a client signs in to the portal for the first time.',
+    render: () =>
+      renderFirstLoginNotification({
+        clientName: 'Stuart Handley',
+        clientCompany: 'SPE Limited',
+        clientId: 'dbf3f46e-6a24-4178-97f2-0ea79bd0ec7e',
+      }),
+  },
+  {
+    id: 'quote-viewed-notification',
+    label: 'Pack viewed notification',
+    description:
+      'Sent to you the first time a client opens a specific pack in the portal.',
+    render: () =>
+      renderQuoteViewedNotification({
+        clientName: 'Stuart Handley',
+        clientCompany: 'SPE Limited',
+        clientId: 'dbf3f46e-6a24-4178-97f2-0ea79bd0ec7e',
+        quoteTitle: 'AI engagement pitch',
       }),
   },
 ]
