@@ -5,6 +5,7 @@ import {
   downloadInvoicePdfBlob,
   listInvoices,
   regenerateInvoicePdf,
+  sendInvoice,
   toggleInvoiceVisibility,
   updateInvoiceStatus,
 } from '../../lib/adminService.ts'
@@ -21,6 +22,13 @@ const SENDER = {
   company: 'Noventis Digital',
   addressLines: ['17 Riley Close', 'Market Harborough', 'LE16 9FF'],
   email: 'hello@noventisdigital.co.uk',
+}
+
+const PAYMENT = {
+  accountName: 'JM BYRNE',
+  bank: 'NatWest',
+  sortCode: '54-21-50',
+  accountNumber: '37479903',
 }
 
 const DEFAULT_TERMS = 'Payment due within 14 days of invoice date.'
@@ -273,6 +281,33 @@ export function InvoicesView({
     }
   }
 
+  async function handleSendInvoice(invoice: Invoice) {
+    const recipient = invoice.billingEmail || invoice.clientEmail
+    const hasBeenSent = Boolean(invoice.sentAt)
+    const confirmMessage = hasBeenSent
+      ? `Resend ${invoice.invoiceNumber} to ${recipient}? They have already received a copy.`
+      : `Send ${invoice.invoiceNumber} to ${recipient}?`
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    setBusy(true)
+    setError(null)
+    setStatusMessage(null)
+    try {
+      const updated = await sendInvoice(invoice.id)
+      setStatusMessage(
+        `${updated.invoiceNumber} sent to ${recipient}. Status is now ${updated.status}.`,
+      )
+      await refresh()
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to send invoice.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function handleRegeneratePdf(invoice: Invoice) {
     setBusy(true)
     setError(null)
@@ -327,6 +362,7 @@ export function InvoicesView({
         onVisibilityToggle={handleVisibilityToggle}
         onDownloadPdf={handleDownloadPdf}
         onRegeneratePdf={handleRegeneratePdf}
+        onSendInvoice={handleSendInvoice}
       />
     )
   }
@@ -608,6 +644,7 @@ type InvoiceDetailProps = {
   onVisibilityToggle: (invoice: Invoice) => void
   onDownloadPdf: (invoice: Invoice) => void
   onRegeneratePdf: (invoice: Invoice) => void
+  onSendInvoice: (invoice: Invoice) => void
 }
 
 function InvoiceDetail({
@@ -620,6 +657,7 @@ function InvoiceDetail({
   onVisibilityToggle,
   onDownloadPdf,
   onRegeneratePdf,
+  onSendInvoice,
 }: InvoiceDetailProps) {
   return (
     <div className="admin-view">
@@ -628,9 +666,15 @@ function InvoiceDetail({
           <p className="eyebrow">Invoice {invoice.invoiceNumber}</p>
           <h1>{invoice.clientCompany}</h1>
           <p className="admin-stage-note">
-            Print (Cmd/Ctrl+P) and save as PDF to email the client manually, or
-            use the status and visibility controls below.
+            Send the invoice by email, download the PDF, or update the status
+            below. Regenerate the PDF after editing draft line items.
           </p>
+          {invoice.sentAt ? (
+            <p className="admin-stage-note">
+              Last sent {formatDate(invoice.sentAt)} to{' '}
+              {invoice.billingEmail || invoice.clientEmail}.
+            </p>
+          ) : null}
         </div>
         <div className="admin-stage-actions">
           <button className="ghost-button" onClick={onBack} type="button">
@@ -638,6 +682,14 @@ function InvoiceDetail({
           </button>
           <button
             className="primary-button"
+            disabled={busy || invoice.status === 'cancelled'}
+            onClick={() => onSendInvoice(invoice)}
+            type="button"
+          >
+            {invoice.sentAt ? 'Resend invoice' : 'Send invoice'}
+          </button>
+          <button
+            className="ghost-button"
             disabled={busy || !invoice.pdfPath}
             onClick={() => onDownloadPdf(invoice)}
             type="button"
@@ -750,6 +802,32 @@ function InvoiceDetail({
         <section className="invoice-terms">
           <p className="invoice-label">Terms</p>
           <p>{invoice.terms}</p>
+        </section>
+
+        <section className="invoice-payment">
+          <p className="invoice-label">Payment details</p>
+          <div className="invoice-payment-grid">
+            <div>
+              <span>Account name</span>
+              <strong>{PAYMENT.accountName}</strong>
+            </div>
+            <div>
+              <span>Bank</span>
+              <strong>{PAYMENT.bank}</strong>
+            </div>
+            <div>
+              <span>Sort code</span>
+              <strong>{PAYMENT.sortCode}</strong>
+            </div>
+            <div>
+              <span>Account number</span>
+              <strong>{PAYMENT.accountNumber}</strong>
+            </div>
+            <div>
+              <span>Reference</span>
+              <strong>{invoice.invoiceNumber}</strong>
+            </div>
+          </div>
         </section>
 
         <footer className="invoice-sheet-footer">

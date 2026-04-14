@@ -315,6 +315,18 @@ export async function updateInvoiceStatus(
   return result.invoice
 }
 
+export async function sendInvoice(invoiceId: string): Promise<Invoice> {
+  const result = await invokeAdminAction<{
+    ok: true
+    invoice: Invoice
+    recipient: string
+  }>('sendInvoice', { invoiceId })
+  if (!result.invoice) {
+    throw new Error('Invoice was not returned by the admin function.')
+  }
+  return result.invoice
+}
+
 export async function regenerateInvoicePdf(invoiceId: string): Promise<Invoice> {
   const result = await invokeAdminAction<{ ok: true; invoice: Invoice }>(
     'regenerateInvoicePdf',

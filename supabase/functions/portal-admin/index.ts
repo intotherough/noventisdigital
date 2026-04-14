@@ -1,6 +1,9 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { renderWelcomeEmail } from '../_shared/emailTemplates.ts'
+import {
+  renderInvoiceEmail,
+  renderWelcomeEmail,
+} from '../_shared/emailTemplates.ts'
 import { buildInvoicePdf } from '../_shared/invoicePdf.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -20,6 +23,7 @@ async function sendEmail(input: {
   subject: string
   text: string
   html: string
+  attachments?: Array<{ filename: string; content: string }>
 }): Promise<SendEmailResult> {
   if (!resendApiKey) {
     return { ok: false, error: 'Email provider is not configured.' }
@@ -38,6 +42,7 @@ async function sendEmail(input: {
         subject: input.subject,
         text: input.text,
         html: input.html,
+        ...(input.attachments?.length ? { attachments: input.attachments } : {}),
       }),
     })
 
@@ -53,6 +58,43 @@ async function sendEmail(input: {
       error: error instanceof Error ? error.message : 'Email send failed.',
     }
   }
+}
+
+function uint8ToBase64(bytes: Uint8Array): string {
+  let binary = ''
+  const chunkSize = 0x8000
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize)
+    binary += String.fromCharCode(...chunk)
+  }
+  return btoa(binary)
+}
+
+function formatInvoiceDate(date: string) {
+  const parsed = new Date(date)
+  if (Number.isNaN(parsed.getTime())) {
+    return date
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(parsed)
+}
+
+function formatInvoiceCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+
+const PAYMENT_DETAILS = {
+  accountName: 'JM BYRNE',
+  bank: 'NatWest',
+  sortCode: '54-21-50',
+  accountNumber: '37479903',
 }
 
 type ClientProfileRow = {
@@ -1085,6 +1127,131 @@ async function handleUpdateInvoiceStatus(
   return jsonResponse({ ok: true, invoice })
 }
 
+async function handleSendInvoice(
+  adminClient: ReturnType<typeof createAdminClient>,
+  actorUserId: string,
+  payload: Record<string, unknown>,
+  request: Request,
+) {
+  const invoiceId = String(payload.invoiceId ?? '')
+  if (!invoiceId) {
+    throw new Error('Invoice id is required.')
+  }
+
+  const { data, error } = await adminClient
+    .from('invoices')
+    .select(INVOICE_SELECT)
+    .eq('id', invoiceId)
+    .single()
+
+  if (error || !data) {
+    throw error ?? new Error('Invoice not found.')
+  }
+
+  const invoice = serialiseInvoice(data as InvoiceRow)
+
+  if (invoice.status === 'cancelled') {
+    throw new Error('Cannot send a cancelled invoice.')
+  }
+
+  const recipient = (invoice.billingEmail || invoice.clientEmail || '').trim()
+  if (!recipient) {
+    throw new Error('This client has no email address to send the invoice to.')
+  }
+
+  let pdfPath = invoice.pdfPath
+  if (!pdfPath) {
+    pdfPath = (await generateAndStoreInvoicePdf(adminClient, invoice)) ?? null
+    if (pdfPath) {
+      invoice.pdfPath = pdfPath
+    }
+  }
+
+  if (!pdfPath) {
+    throw new Error('Unable to generate an invoice PDF for sending.')
+  }
+
+  const download = await adminClient.storage
+    .from('client-documents')
+    .download(pdfPath)
+
+  if (download.error || !download.data) {
+    throw download.error ?? new Error('Unable to read the stored invoice PDF.')
+  }
+
+  const pdfBytes = new Uint8Array(await download.data.arrayBuffer())
+  const pdfBase64 = uint8ToBase64(pdfBytes)
+
+  const rendered = renderInvoiceEmail({
+    clientName: invoice.clientName || 'there',
+    invoiceNumber: invoice.invoiceNumber,
+    totalFormatted: formatInvoiceCurrency(invoice.totalAmount, invoice.currency),
+    issueDateFormatted: formatInvoiceDate(invoice.issueDate),
+    dueDateFormatted: formatInvoiceDate(invoice.dueDate),
+    accountName: PAYMENT_DETAILS.accountName,
+    bank: PAYMENT_DETAILS.bank,
+    sortCode: PAYMENT_DETAILS.sortCode,
+    accountNumber: PAYMENT_DETAILS.accountNumber,
+  })
+
+  const result = await sendEmail({
+    to: recipient,
+    subject: rendered.subject,
+    text: rendered.text,
+    html: rendered.html,
+    attachments: [
+      {
+        filename: `${invoice.invoiceNumber}.pdf`,
+        content: pdfBase64,
+      },
+    ],
+  })
+
+  if (!result.ok) {
+    await logAdminAudit(adminClient, actorUserId, 'invoice_send_failed', {
+      subjectUserId: invoice.authUserId,
+      metadata: {
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        recipient,
+        error: result.error ?? null,
+      },
+      request,
+    })
+    throw new Error(result.error ?? 'Unable to send the invoice email.')
+  }
+
+  const patch: Record<string, unknown> = { sent_at: new Date().toISOString() }
+  if (invoice.status === 'draft') {
+    patch.status = 'sent'
+  }
+
+  const update = await adminClient
+    .from('invoices')
+    .update(patch)
+    .eq('id', invoiceId)
+    .select(INVOICE_SELECT)
+    .single()
+
+  if (update.error || !update.data) {
+    throw update.error ?? new Error('Unable to update the invoice after sending.')
+  }
+
+  const updatedInvoice = serialiseInvoice(update.data as InvoiceRow)
+
+  await logAdminAudit(adminClient, actorUserId, 'invoice_sent', {
+    subjectUserId: updatedInvoice.authUserId,
+    metadata: {
+      invoiceId: updatedInvoice.id,
+      invoiceNumber: updatedInvoice.invoiceNumber,
+      recipient,
+    },
+    request,
+  })
+
+  return jsonResponse({ ok: true, invoice: updatedInvoice, recipient })
+}
+
 async function handleToggleInvoiceVisibility(
   adminClient: ReturnType<typeof createAdminClient>,
   actorUserId: string,
@@ -1179,6 +1346,9 @@ Deno.serve(async (request) => {
 
       case 'regenerateInvoicePdf':
         return await handleRegenerateInvoicePdf(adminClient, currentUser.id, payload, request)
+
+      case 'sendInvoice':
+        return await handleSendInvoice(adminClient, currentUser.id, payload, request)
 
       case 'updateInvoiceStatus':
         return await handleUpdateInvoiceStatus(adminClient, currentUser.id, payload, request)

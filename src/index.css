@@ -2200,9 +2200,36 @@ p {
 }
 
 .invoice-notes,
-.invoice-terms {
+.invoice-terms,
+.invoice-payment {
   padding: 1rem 0;
   border-top: 1px solid var(--line);
+}
+
+.invoice-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 1.4rem;
+  margin-top: 0.4rem;
+}
+
+.invoice-payment-grid > div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.invoice-payment-grid span {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.invoice-payment-grid strong {
+  font-size: 0.92rem;
+  font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+  color: var(--accent);
 }
 
 .invoice-notes p:last-child,

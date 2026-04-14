@@ -17,6 +17,7 @@ export type EmailTemplateId =
   | 'password-reset'
   | 'first-login-notification'
   | 'quote-viewed-notification'
+  | 'invoice'
 
 export type RenderedEmail = {
   subject: string
@@ -301,6 +302,65 @@ ${paragraph('<span style="color:rgba(241,231,216,0.45);font-size:12px;">(automat
 }
 
 // -----------------------------------------------------------------------------
+// Invoice email - sent to a client when the admin sends an invoice
+// -----------------------------------------------------------------------------
+
+export type InvoiceEmailVars = {
+  clientName: string
+  invoiceNumber: string
+  totalFormatted: string
+  issueDateFormatted: string
+  dueDateFormatted: string
+  accountName: string
+  bank: string
+  sortCode: string
+  accountNumber: string
+}
+
+export function renderInvoiceEmail(vars: InvoiceEmailVars): RenderedEmail {
+  const subject = `Invoice ${vars.invoiceNumber} from Noventis Digital`
+
+  const text = `Hi ${vars.clientName},
+
+Please find attached invoice ${vars.invoiceNumber} for ${vars.totalFormatted}.
+
+Issued: ${vars.issueDateFormatted}
+Due:    ${vars.dueDateFormatted}
+
+Payment details
+Account name:   ${vars.accountName}
+Bank:           ${vars.bank}
+Sort code:      ${vars.sortCode}
+Account number: ${vars.accountNumber}
+
+Please quote ${vars.invoiceNumber} as the reference when paying.
+
+If you have any questions, reply to this email or write to ${CONTACT_EMAIL}.
+
+${signatureText()}
+`
+
+  const body = `
+${paragraph(`Hi ${vars.clientName},`)}
+${paragraph(`Please find attached invoice ${mono(vars.invoiceNumber)} for <strong style="color:#ece1d2;">${vars.totalFormatted}</strong>.`)}
+${paragraph(`Issued: ${vars.issueDateFormatted}<br />Due: <strong style="color:#ece1d2;">${vars.dueDateFormatted}</strong>`)}
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 16px 0;border-collapse:collapse;">
+  <tr><td colspan="2" style="padding:12px 0 6px 0;font-size:11px;letter-spacing:0.08em;color:rgba(241,231,216,0.55);text-transform:uppercase;border-top:1px solid rgba(255,245,232,0.08);">Payment details</td></tr>
+  <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Account name</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.accountName}</strong></td></tr>
+  <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Bank</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.bank}</strong></td></tr>
+  <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Sort code</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.sortCode}</strong></td></tr>
+  <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Account number</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.accountNumber}</strong></td></tr>
+  <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Reference</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.invoiceNumber}</strong></td></tr>
+</table>
+${paragraph(`Please quote ${mono(vars.invoiceNumber)} as the reference when paying.`)}
+${paragraph(`If you have any questions, reply to this email or write to ${link(`mailto:${CONTACT_EMAIL}`, CONTACT_EMAIL)}.`)}
+${signatureHtml()}
+`
+
+  return { subject, text, html: wrapHtml(body) }
+}
+
+// -----------------------------------------------------------------------------
 // Sample data for the admin preview page
 // -----------------------------------------------------------------------------
 
@@ -376,6 +436,23 @@ export const sampleTemplates: Array<{
         clientCompany: 'SPE Limited',
         clientId: 'dbf3f46e-6a24-4178-97f2-0ea79bd0ec7e',
         quoteTitle: 'AI engagement pitch',
+      }),
+  },
+  {
+    id: 'invoice',
+    label: 'Invoice email',
+    description: 'Sent to a client when you send an invoice. PDF attached.',
+    render: () =>
+      renderInvoiceEmail({
+        clientName: 'Chris',
+        invoiceNumber: 'NOV-0002',
+        totalFormatted: '£1,200',
+        issueDateFormatted: '14 April 2026',
+        dueDateFormatted: '28 April 2026',
+        accountName: 'JM BYRNE',
+        bank: 'NatWest',
+        sortCode: '54-21-50',
+        accountNumber: '37479903',
       }),
   },
 ]

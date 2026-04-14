@@ -36,6 +36,13 @@ const SENDER = {
   email: 'hello@noventisdigital.co.uk',
 }
 
+const PAYMENT = {
+  accountName: 'JM BYRNE',
+  bank: 'NatWest',
+  sortCode: '54-21-50',
+  accountNumber: '37479903',
+}
+
 const PAGE_WIDTH = 595.28 // A4 in points (72dpi)
 const PAGE_HEIGHT = 841.89
 const MARGIN_X = 56
@@ -374,6 +381,43 @@ export async function buildInvoicePdf(input: InvoicePdfInput): Promise<Uint8Arra
     })
     cursorY -= 13
   }
+
+  cursorY -= 10
+  drawRule(page, MARGIN_X, cursorY, contentWidth)
+  cursorY -= 18
+
+  drawText(page, 'PAYMENT DETAILS', {
+    x: MARGIN_X,
+    y: cursorY,
+    size: 7.5,
+    font: bold,
+    color: COLOUR_MUTED,
+  })
+  cursorY -= 14
+
+  const labelColWidth = 90
+  const drawPaymentRow = (label: string, value: string) => {
+    drawText(page, label, {
+      x: MARGIN_X,
+      y: cursorY,
+      size: 10,
+      font: regular,
+      color: COLOUR_MUTED,
+    })
+    drawText(page, value, {
+      x: MARGIN_X + labelColWidth,
+      y: cursorY,
+      size: 10,
+      font: bold,
+    })
+    cursorY -= 13
+  }
+
+  drawPaymentRow('Account name', PAYMENT.accountName)
+  drawPaymentRow('Bank', PAYMENT.bank)
+  drawPaymentRow('Sort code', PAYMENT.sortCode)
+  drawPaymentRow('Account number', PAYMENT.accountNumber)
+  drawPaymentRow('Reference', input.invoiceNumber)
 
   // Footer
   const footerY = MARGIN_BOTTOM
