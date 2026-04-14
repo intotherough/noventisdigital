@@ -283,6 +283,23 @@ using (
   and public.is_admin_user()
 );
 
+drop policy if exists "Clients can read their visible invoice PDFs" on storage.objects;
+
+create policy "Clients can read their visible invoice PDFs"
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'client-documents'
+  and exists (
+    select 1
+    from public.invoices i
+    where i.pdf_path = storage.objects.name
+      and i.auth_user_id = auth.uid()
+      and i.visible_to_client = true
+  )
+);
+
 create policy "Service role can manage storage documents"
 on storage.objects
 for all

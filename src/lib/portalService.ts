@@ -2,6 +2,8 @@ import type { Session } from '@supabase/supabase-js'
 import { demoClients, demoQuotes } from '../data/demoPortal'
 import type {
   ClientUpload,
+  Invoice,
+  InvoiceLineItem,
   Milestone,
   PortalClient,
   PortalMode,
@@ -12,6 +14,7 @@ import type {
 import { hasSupabase, supabase } from './supabase'
 
 const CLIENT_UPLOADS_BUCKET = 'client-uploads'
+const CLIENT_DOCUMENTS_BUCKET = 'client-documents'
 
 const demoSessionKey = 'noventis-digital-demo-session'
 
@@ -71,6 +74,81 @@ function mapUploadRow(row: ClientUploadRow): ClientUpload {
 
 function sanitiseFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'file'
+}
+
+type InvoiceRow = {
+  id: string
+  invoice_number: string
+  invoice_sequence: number
+  auth_user_id: string | null
+  client_name: string
+  client_company: string
+  client_email: string
+  billing_email: string | null
+  issue_date: string
+  due_date: string
+  line_items: unknown
+  notes: string | null
+  terms: string | null
+  subtotal: string | number | null
+  total_amount: string | number | null
+  currency: string | null
+  status: string
+  visible_to_client: boolean
+  pdf_path: string | null
+  sent_at: string | null
+  paid_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+function normaliseInvoiceLineItems(raw: unknown): InvoiceLineItem[] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+  return raw.map((entry) => {
+    const record = entry as Record<string, unknown>
+    const quantity = Number(record.quantity ?? 0) || 0
+    const unitPrice = Number(record.unitPrice ?? 0) || 0
+    const amount =
+      record.amount !== undefined && record.amount !== null && record.amount !== ''
+        ? Number(record.amount) || 0
+        : Number((quantity * unitPrice).toFixed(2))
+    return {
+      description: String(record.description ?? ''),
+      quantity,
+      unitPrice,
+      amount,
+    }
+  })
+}
+
+function mapInvoiceRow(row: InvoiceRow): Invoice {
+  return {
+    id: row.id,
+    invoiceNumber: row.invoice_number,
+    invoiceSequence: row.invoice_sequence,
+    authUserId: row.auth_user_id,
+    clientName: row.client_name,
+    clientCompany: row.client_company,
+    clientEmail: row.client_email,
+    billingEmail: row.billing_email,
+    issueDate: row.issue_date,
+    dueDate: row.due_date,
+    lineItems: normaliseInvoiceLineItems(row.line_items),
+    notes: row.notes ?? '',
+    terms: row.terms ?? '',
+    subtotal: Number(row.subtotal ?? 0) || 0,
+    totalAmount: Number(row.total_amount ?? 0) || 0,
+    currency: row.currency ?? 'GBP',
+    status: row.status as Invoice['status'],
+    visibleToClient: Boolean(row.visible_to_client),
+    pdfPath: row.pdf_path,
+    sentAt: row.sent_at,
+    paidAt: row.paid_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
 }
 
 export const portalMode: PortalMode = hasSupabase ? 'live' : 'demo'
@@ -571,6 +649,41 @@ export async function resolveClientUploadAssetUrl(
     url: URL.createObjectURL(data),
     revokeOnDispose: true,
   }
+}
+
+export async function listClientInvoices(): Promise<Invoice[]> {
+  if (!hasSupabase || !supabase) {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('invoices')
+    .select(
+      'id, invoice_number, invoice_sequence, auth_user_id, client_name, client_company, client_email, billing_email, issue_date, due_date, line_items, notes, terms, subtotal, total_amount, currency, status, visible_to_client, pdf_path, sent_at, paid_at, created_at, updated_at',
+    )
+    .order('invoice_sequence', { ascending: false })
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map((row) => mapInvoiceRow(row as InvoiceRow))
+}
+
+export async function downloadClientInvoicePdfBlob(path: string): Promise<Blob> {
+  if (!supabase) {
+    throw new Error('Secure invoice access is not available right now.')
+  }
+
+  const { data, error } = await supabase.storage
+    .from(CLIENT_DOCUMENTS_BUCKET)
+    .download(path)
+
+  if (error) {
+    throw error
+  }
+
+  return data
 }
 
 export function subscribeToAuth(

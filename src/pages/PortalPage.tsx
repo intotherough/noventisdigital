@@ -4,7 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { demoCredentials } from '../data/demoPortal'
 import { formatCurrency, formatDate, formatDateTime } from '../lib/formatting'
 import {
+  downloadClientInvoicePdfBlob,
   getDocumentStoragePath,
+  listClientInvoices,
   listClientUploads,
   logPortalAuditEvent,
   portalMode as resolvedPortalMode,
@@ -13,6 +15,7 @@ import {
 } from '../lib/portalService'
 import type {
   ClientUpload,
+  Invoice,
   PortalClient,
   PortalMode,
   QuoteAttachment,
@@ -124,6 +127,10 @@ export function PortalPage({
   const [uploadPending, setUploadPending] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadsDragOver, setUploadsDragOver] = useState(false)
+  const [clientInvoices, setClientInvoices] = useState<Invoice[]>([])
+  const [invoicesLoading, setInvoicesLoading] = useState(false)
+  const [invoicesError, setInvoicesError] = useState<string | null>(null)
+  const [invoiceDownloadId, setInvoiceDownloadId] = useState<string | null>(null)
   const viewedQuoteIdsRef = useRef(new Set<string>())
   const viewedDocumentKeysRef = useRef(new Set<string>())
 
@@ -185,6 +192,62 @@ export function PortalPage({
   useEffect(() => {
     void refreshClientUploads()
   }, [refreshClientUploads])
+
+  const refreshClientInvoices = useCallback(async () => {
+    if (!client || resolvedPortalMode !== 'live') {
+      setClientInvoices([])
+      return
+    }
+
+    setInvoicesLoading(true)
+    setInvoicesError(null)
+    try {
+      const invoices = await listClientInvoices()
+      setClientInvoices(invoices)
+    } catch (error) {
+      setInvoicesError(
+        error instanceof Error ? error.message : 'Unable to load your invoices.',
+      )
+    } finally {
+      setInvoicesLoading(false)
+    }
+  }, [client])
+
+  useEffect(() => {
+    void refreshClientInvoices()
+  }, [refreshClientInvoices])
+
+  const handleInvoiceDownload = useCallback(async (invoice: Invoice) => {
+    if (!invoice.pdfPath) {
+      setInvoicesError('This invoice does not have a downloadable PDF yet.')
+      return
+    }
+    setInvoiceDownloadId(invoice.id)
+    setInvoicesError(null)
+    try {
+      const blob = await downloadClientInvoicePdfBlob(invoice.pdfPath)
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `${invoice.invoiceNumber}.pdf`
+      document.body.appendChild(anchor)
+      anchor.click()
+      document.body.removeChild(anchor)
+      URL.revokeObjectURL(url)
+      void logPortalAuditEvent('invoice_downloaded', {
+        metadata: {
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+        },
+      })
+    } catch (error) {
+      setInvoicesError(
+        error instanceof Error ? error.message : 'Unable to download invoice.',
+      )
+    } finally {
+      setInvoiceDownloadId(null)
+    }
+  }, [])
 
   const handleClientFileUpload = useCallback(
     async (file: File) => {
@@ -559,6 +622,56 @@ export function PortalPage({
                   </div>
                 )}
               </div>
+
+              {resolvedPortalMode === 'live' ? (
+                <div className="list-card list-card--kinetic portal-invoices-card">
+                  <div className="list-card-heading">
+                    <h3>Invoices</h3>
+                    <span>{clientInvoices.length}</span>
+                  </div>
+
+                  {invoicesError ? (
+                    <div className="error-banner">{invoicesError}</div>
+                  ) : null}
+
+                  {invoicesLoading ? (
+                    <div className="loading-panel">Loading invoices...</div>
+                  ) : clientInvoices.length ? (
+                    <ul className="portal-invoice-list">
+                      {clientInvoices.map((invoice) => (
+                        <li className="portal-invoice-item" key={invoice.id}>
+                          <div className="portal-invoice-meta">
+                            <strong>{invoice.invoiceNumber}</strong>
+                            <span>
+                              {formatCurrency(invoice.totalAmount)} · due{' '}
+                              {formatDate(invoice.dueDate)}
+                            </span>
+                            <span className={`status-pill is-${invoice.status}`}>
+                              {invoice.status}
+                            </span>
+                          </div>
+                          <button
+                            className="ghost-button"
+                            disabled={
+                              invoiceDownloadId === invoice.id || !invoice.pdfPath
+                            }
+                            onClick={() => void handleInvoiceDownload(invoice)}
+                            type="button"
+                          >
+                            {invoiceDownloadId === invoice.id
+                              ? 'Downloading...'
+                              : 'Download PDF'}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="empty-state">
+                      No invoices to show yet.
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </aside>
 
             <div className="portal-main">

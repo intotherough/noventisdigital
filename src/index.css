@@ -2232,6 +2232,55 @@ p {
   color: var(--accent);
 }
 
+.portal-invoices-card {
+  margin-top: 1.2rem;
+}
+
+.portal-invoice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.portal-invoice-item {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: rgba(255, 250, 244, 0.02);
+}
+
+.portal-invoice-meta {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.portal-invoice-meta strong {
+  font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+}
+
+.portal-invoice-meta > span:nth-child(2) {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.portal-invoice-item .status-pill {
+  justify-self: start;
+  margin-top: 0.1rem;
+  font-size: 0.65rem;
+}
+
+.portal-invoice-item button {
+  justify-self: start;
+  font-size: 0.72rem;
+}
+
 .invoice-notes p:last-child,
 .invoice-terms p:last-child {
   margin: 0;
