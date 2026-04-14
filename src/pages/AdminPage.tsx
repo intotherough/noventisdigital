@@ -280,6 +280,7 @@ export function AdminPage() {
                   clients={data.clients}
                   invoiceIdFromUrl={invoiceIdFromUrl}
                   onNavigateToList={() => navigate('/admin/invoices')}
+                  onNavigateToCreate={() => navigate('/admin/invoices/new')}
                   onNavigateToInvoice={(id) => navigate(`/admin/invoices/${id}`)}
                 />
               ) : null}

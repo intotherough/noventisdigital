@@ -27,6 +27,7 @@ type InvoicesViewProps = {
   clients: AdminClientRecord[]
   invoiceIdFromUrl: string | null
   onNavigateToList: () => void
+  onNavigateToCreate: () => void
   onNavigateToInvoice: (invoiceId: string) => void
 }
 
@@ -73,14 +74,21 @@ export function InvoicesView({
   clients,
   invoiceIdFromUrl,
   onNavigateToList,
+  onNavigateToCreate,
   onNavigateToInvoice,
 }: InvoicesViewProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string | null>(null)
-  const [mode, setMode] = useState<'list' | 'create' | 'detail'>('list')
   const [busy, setBusy] = useState(false)
+
+  const mode: 'list' | 'create' | 'detail' =
+    invoiceIdFromUrl === null
+      ? 'list'
+      : invoiceIdFromUrl === 'new'
+        ? 'create'
+        : 'detail'
 
   const [formClientId, setFormClientId] = useState<string>('')
   const [formBillingEmail, setFormBillingEmail] = useState('')
@@ -112,15 +120,18 @@ export function InvoicesView({
   }, [refresh])
 
   useEffect(() => {
-    if (invoiceIdFromUrl) {
-      setMode('detail')
-    } else if (mode === 'detail') {
-      setMode('list')
+    if (mode === 'create') {
+      resetForm()
     }
-  }, [invoiceIdFromUrl, mode])
+    // Reset form only when entering create mode. Intentionally no other deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode])
 
   const selectedInvoice = useMemo(
-    () => (invoiceIdFromUrl ? invoices.find((inv) => inv.id === invoiceIdFromUrl) ?? null : null),
+    () =>
+      invoiceIdFromUrl && invoiceIdFromUrl !== 'new'
+        ? invoices.find((inv) => inv.id === invoiceIdFromUrl) ?? null
+        : null,
     [invoiceIdFromUrl, invoices],
   )
 
@@ -270,10 +281,7 @@ export function InvoicesView({
         busy={busy}
         error={error}
         statusMessage={statusMessage}
-        onBack={() => {
-          setMode('list')
-          onNavigateToList()
-        }}
+        onBack={onNavigateToList}
         onStatusChange={handleStatusChange}
         onVisibilityToggle={handleVisibilityToggle}
       />
@@ -295,10 +303,7 @@ export function InvoicesView({
           <div className="admin-stage-actions">
             <button
               className="ghost-button"
-              onClick={() => {
-                setMode('list')
-                resetForm()
-              }}
+              onClick={onNavigateToList}
               type="button"
             >
               Cancel
@@ -489,10 +494,7 @@ export function InvoicesView({
           </button>
           <button
             className="primary-button"
-            onClick={() => {
-              resetForm()
-              setMode('create')
-            }}
+            onClick={onNavigateToCreate}
             type="button"
           >
             New invoice
