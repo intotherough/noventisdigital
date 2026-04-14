@@ -272,6 +272,17 @@ using (
   and (storage.foldername(name))[1] = auth.uid()::text
 );
 
+drop policy if exists "Admins can read all client-documents" on storage.objects;
+
+create policy "Admins can read all client-documents"
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'client-documents'
+  and public.is_admin_user()
+);
+
 create policy "Service role can manage storage documents"
 on storage.objects
 for all

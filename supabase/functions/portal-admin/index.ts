@@ -869,7 +869,7 @@ async function generateAndStoreInvoicePdf(
     terms: invoice.terms,
   })
 
-  const path = `${invoice.authUserId}/invoice-${invoice.invoiceNumber}.pdf`
+  const path = `invoices/${invoice.authUserId}/invoice-${invoice.invoiceNumber}.pdf`
 
   const upload = await adminClient.storage
     .from('client-documents')
