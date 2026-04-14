@@ -6,6 +6,7 @@ import { AuditView } from '../components/admin/AuditView.tsx'
 import { ClientsView } from '../components/admin/ClientsView.tsx'
 import { DocumentsView } from '../components/admin/DocumentsView.tsx'
 import { EmailPreviewView } from '../components/admin/EmailPreviewView.tsx'
+import { InvoicesView } from '../components/admin/InvoicesView.tsx'
 import { OverviewView } from '../components/admin/OverviewView.tsx'
 import type { AdminView } from '../components/admin/types.ts'
 import { adminViews } from '../components/admin/types.ts'
@@ -18,30 +19,39 @@ const ADMIN_VIEW_IDS = new Set<AdminView>(adminViews.map((view) => view.id))
 function parseAdminLocation(pathname: string): {
   activeView: AdminView
   clientIdFromUrl: string | null
+  invoiceIdFromUrl: string | null
 } {
   const trimmed = pathname.replace(/^\/admin\/?/, '').replace(/\/$/, '')
   if (!trimmed) {
-    return { activeView: 'overview', clientIdFromUrl: null }
+    return { activeView: 'overview', clientIdFromUrl: null, invoiceIdFromUrl: null }
   }
 
-  const [viewSegment, clientSegment] = trimmed.split('/')
+  const [viewSegment, contextSegment] = trimmed.split('/')
   const candidate = viewSegment as AdminView
 
   if (ADMIN_VIEW_IDS.has(candidate)) {
+    if (candidate === 'invoices') {
+      return {
+        activeView: candidate,
+        clientIdFromUrl: null,
+        invoiceIdFromUrl: contextSegment ?? null,
+      }
+    }
     return {
       activeView: candidate,
-      clientIdFromUrl: clientSegment ?? null,
+      clientIdFromUrl: contextSegment ?? null,
+      invoiceIdFromUrl: null,
     }
   }
 
-  return { activeView: 'overview', clientIdFromUrl: null }
+  return { activeView: 'overview', clientIdFromUrl: null, invoiceIdFromUrl: null }
 }
 
 export function AdminPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const { activeView, clientIdFromUrl } = useMemo(
+  const { activeView, clientIdFromUrl, invoiceIdFromUrl } = useMemo(
     () => parseAdminLocation(location.pathname),
     [location.pathname],
   )
@@ -96,8 +106,9 @@ export function AdminPage() {
 
   const handleSelectClient = useCallback(
     (id: string) => {
-      const view = activeView === 'overview' ? 'clients' : activeView
-      navigateToView(view, id)
+      const clientScopedViews = new Set(['clients', 'documents', 'audit'])
+      const view = clientScopedViews.has(activeView) ? activeView : 'clients'
+      navigateToView(view as AdminView, id)
     },
     [navigateToView, activeView],
   )
@@ -261,6 +272,15 @@ export function AdminPage() {
                   portalEventCount={derived.portalEventCount}
                   adminEventCount={derived.adminEventCount}
                   onRefresh={() => void data.refreshDashboardData()}
+                />
+              ) : null}
+
+              {activeView === 'invoices' ? (
+                <InvoicesView
+                  clients={data.clients}
+                  invoiceIdFromUrl={invoiceIdFromUrl}
+                  onNavigateToList={() => navigate('/admin/invoices')}
+                  onNavigateToInvoice={(id) => navigate(`/admin/invoices/${id}`)}
                 />
               ) : null}
 

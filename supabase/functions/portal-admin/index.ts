@@ -751,6 +751,276 @@ async function handleUploadClientPack(
   return jsonResponse({ ok: true })
 }
 
+type InvoiceLineItemInput = {
+  description?: string
+  quantity?: number | string
+  unitPrice?: number | string
+  amount?: number | string
+}
+
+function normaliseInvoiceLineItems(raw: unknown) {
+  if (!Array.isArray(raw)) {
+    return { items: [], subtotal: 0 }
+  }
+
+  const items = (raw as InvoiceLineItemInput[]).map((entry) => {
+    const quantity = Number(entry.quantity ?? 1) || 0
+    const unitPrice = Number(entry.unitPrice ?? 0) || 0
+    const amount =
+      entry.amount !== undefined && entry.amount !== null && entry.amount !== ''
+        ? Number(entry.amount) || 0
+        : Number((quantity * unitPrice).toFixed(2))
+
+    return {
+      description: String(entry.description ?? '').trim(),
+      quantity,
+      unitPrice,
+      amount,
+    }
+  })
+
+  const subtotal = Number(
+    items.reduce((total, item) => total + item.amount, 0).toFixed(2),
+  )
+
+  return { items, subtotal }
+}
+
+type InvoiceRow = {
+  id: string
+  invoice_number: string
+  invoice_sequence: number
+  auth_user_id: string | null
+  client_name: string
+  client_company: string
+  client_email: string
+  billing_email: string | null
+  issue_date: string
+  due_date: string
+  line_items: unknown
+  notes: string | null
+  terms: string | null
+  subtotal: string | number | null
+  total_amount: string | number | null
+  currency: string | null
+  status: string
+  visible_to_client: boolean
+  sent_at: string | null
+  paid_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+function serialiseInvoice(row: InvoiceRow) {
+  const { items, subtotal } = normaliseInvoiceLineItems(row.line_items)
+  return {
+    id: row.id,
+    invoiceNumber: row.invoice_number,
+    invoiceSequence: row.invoice_sequence,
+    authUserId: row.auth_user_id,
+    clientName: row.client_name,
+    clientCompany: row.client_company,
+    clientEmail: row.client_email,
+    billingEmail: row.billing_email,
+    issueDate: row.issue_date,
+    dueDate: row.due_date,
+    lineItems: items,
+    notes: row.notes ?? '',
+    terms: row.terms ?? '',
+    subtotal: Number(row.subtotal ?? subtotal) || 0,
+    totalAmount: Number(row.total_amount ?? subtotal) || 0,
+    currency: row.currency ?? 'GBP',
+    status: row.status,
+    visibleToClient: Boolean(row.visible_to_client),
+    sentAt: row.sent_at,
+    paidAt: row.paid_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+async function listInvoices(adminClient: ReturnType<typeof createAdminClient>) {
+  const { data, error } = await adminClient
+    .from('invoices')
+    .select(
+      'id, invoice_number, invoice_sequence, auth_user_id, client_name, client_company, client_email, billing_email, issue_date, due_date, line_items, notes, terms, subtotal, total_amount, currency, status, visible_to_client, sent_at, paid_at, created_at, updated_at',
+    )
+    .order('invoice_sequence', { ascending: false })
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map((row) => serialiseInvoice(row as InvoiceRow))
+}
+
+async function handleCreateInvoice(
+  adminClient: ReturnType<typeof createAdminClient>,
+  actorUserId: string,
+  payload: Record<string, unknown>,
+  request: Request,
+) {
+  const authUserId = String(payload.authUserId ?? '')
+  const billingEmail = String(payload.billingEmail ?? '').trim()
+  const issueDate = String(payload.issueDate ?? '').trim()
+  const dueDate = String(payload.dueDate ?? '').trim()
+  const notes = String(payload.notes ?? '').trim()
+  const terms =
+    String(payload.terms ?? '').trim() ||
+    'Payment due within 14 days of invoice date.'
+
+  if (!authUserId || !issueDate || !dueDate) {
+    throw new Error('Client, issue date and due date are required.')
+  }
+
+  const profile = await getClientProfile(adminClient, authUserId)
+  if (!profile) {
+    throw new Error('That client was not found.')
+  }
+
+  const { items, subtotal } = normaliseInvoiceLineItems(payload.lineItems)
+
+  if (!items.length) {
+    throw new Error('At least one line item is required.')
+  }
+
+  const { data, error } = await adminClient
+    .from('invoices')
+    .insert({
+      auth_user_id: authUserId,
+      client_name: profile.full_name ?? 'Client',
+      client_company: profile.company ?? 'Client account',
+      client_email: profile.email ?? '',
+      billing_email: billingEmail || null,
+      issue_date: issueDate,
+      due_date: dueDate,
+      line_items: items,
+      notes,
+      terms,
+      subtotal,
+      total_amount: subtotal,
+      currency: 'GBP',
+      status: 'draft',
+      visible_to_client: false,
+    })
+    .select(
+      'id, invoice_number, invoice_sequence, auth_user_id, client_name, client_company, client_email, billing_email, issue_date, due_date, line_items, notes, terms, subtotal, total_amount, currency, status, visible_to_client, sent_at, paid_at, created_at, updated_at',
+    )
+    .single()
+
+  if (error || !data) {
+    throw error ?? new Error('Unable to create the invoice.')
+  }
+
+  const invoice = serialiseInvoice(data as InvoiceRow)
+
+  await logAdminAudit(adminClient, actorUserId, 'invoice_created', {
+    subjectUserId: authUserId,
+    metadata: {
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      totalAmount: invoice.totalAmount,
+    },
+    request,
+  })
+
+  return jsonResponse({ ok: true, invoice })
+}
+
+async function handleUpdateInvoiceStatus(
+  adminClient: ReturnType<typeof createAdminClient>,
+  actorUserId: string,
+  payload: Record<string, unknown>,
+  request: Request,
+) {
+  const invoiceId = String(payload.invoiceId ?? '')
+  const status = String(payload.status ?? '')
+
+  if (!invoiceId || !status) {
+    throw new Error('Invoice id and status are required.')
+  }
+
+  if (!['draft', 'sent', 'paid', 'cancelled'].includes(status)) {
+    throw new Error('Invalid invoice status.')
+  }
+
+  const patch: Record<string, unknown> = { status }
+  if (status === 'sent') {
+    patch.sent_at = new Date().toISOString()
+  }
+  if (status === 'paid') {
+    patch.paid_at = new Date().toISOString()
+  }
+
+  const { data, error } = await adminClient
+    .from('invoices')
+    .update(patch)
+    .eq('id', invoiceId)
+    .select(
+      'id, invoice_number, invoice_sequence, auth_user_id, client_name, client_company, client_email, billing_email, issue_date, due_date, line_items, notes, terms, subtotal, total_amount, currency, status, visible_to_client, sent_at, paid_at, created_at, updated_at',
+    )
+    .single()
+
+  if (error || !data) {
+    throw error ?? new Error('Unable to update the invoice.')
+  }
+
+  const invoice = serialiseInvoice(data as InvoiceRow)
+
+  await logAdminAudit(adminClient, actorUserId, 'invoice_status_updated', {
+    subjectUserId: invoice.authUserId,
+    metadata: {
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      status,
+    },
+    request,
+  })
+
+  return jsonResponse({ ok: true, invoice })
+}
+
+async function handleToggleInvoiceVisibility(
+  adminClient: ReturnType<typeof createAdminClient>,
+  actorUserId: string,
+  payload: Record<string, unknown>,
+  request: Request,
+) {
+  const invoiceId = String(payload.invoiceId ?? '')
+  const visible = Boolean(payload.visible)
+
+  if (!invoiceId) {
+    throw new Error('Invoice id is required.')
+  }
+
+  const { data, error } = await adminClient
+    .from('invoices')
+    .update({ visible_to_client: visible })
+    .eq('id', invoiceId)
+    .select(
+      'id, invoice_number, invoice_sequence, auth_user_id, client_name, client_company, client_email, billing_email, issue_date, due_date, line_items, notes, terms, subtotal, total_amount, currency, status, visible_to_client, sent_at, paid_at, created_at, updated_at',
+    )
+    .single()
+
+  if (error || !data) {
+    throw error ?? new Error('Unable to update the invoice.')
+  }
+
+  const invoice = serialiseInvoice(data as InvoiceRow)
+
+  await logAdminAudit(adminClient, actorUserId, 'invoice_visibility_updated', {
+    subjectUserId: invoice.authUserId,
+    metadata: {
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      visible,
+    },
+    request,
+  })
+
+  return jsonResponse({ ok: true, invoice })
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -793,6 +1063,20 @@ Deno.serve(async (request) => {
 
       case 'deleteClient':
         return await handleDeleteClient(adminClient, currentUser.id, payload, request)
+
+      case 'listInvoices': {
+        const invoices = await listInvoices(adminClient)
+        return jsonResponse({ ok: true, invoices })
+      }
+
+      case 'createInvoice':
+        return await handleCreateInvoice(adminClient, currentUser.id, payload, request)
+
+      case 'updateInvoiceStatus':
+        return await handleUpdateInvoiceStatus(adminClient, currentUser.id, payload, request)
+
+      case 'toggleInvoiceVisibility':
+        return await handleToggleInvoiceVisibility(adminClient, currentUser.id, payload, request)
 
       default:
         return errorResponse('Unknown admin action.', 404)

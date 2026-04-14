@@ -6,6 +6,7 @@ export type AdminView =
   | 'overview'
   | 'clients'
   | 'documents'
+  | 'invoices'
   | 'audit'
   | 'email-preview'
 export type AuditScopeFilter = 'all' | 'client_portal' | 'admin_console'
@@ -43,6 +44,12 @@ export const adminViews: Array<{
     label: 'Documents',
     title: 'Private packs',
     detail: 'Upload and track authenticated client material.',
+  },
+  {
+    id: 'invoices',
+    label: 'Invoices',
+    title: 'Invoice ledger',
+    detail: 'Sequential GBP invoices, create and mark paid.',
   },
   {
     id: 'audit',

@@ -102,6 +102,60 @@ export type AuditLogRecord = {
   metadata: Record<string, unknown>
 }
 
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'cancelled'
+
+export type InvoiceLineItem = {
+  description: string
+  quantity: number
+  unitPrice: number
+  amount: number
+}
+
+export type Invoice = {
+  id: string
+  invoiceNumber: string
+  invoiceSequence: number
+  authUserId: string | null
+  clientName: string
+  clientCompany: string
+  clientEmail: string
+  billingEmail: string | null
+  issueDate: string
+  dueDate: string
+  lineItems: InvoiceLineItem[]
+  notes: string
+  terms: string
+  subtotal: number
+  totalAmount: number
+  currency: string
+  status: InvoiceStatus
+  visibleToClient: boolean
+  sentAt: string | null
+  paidAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type CreateInvoiceInput = {
+  authUserId: string
+  billingEmail?: string
+  issueDate: string
+  dueDate: string
+  lineItems: InvoiceLineItem[]
+  notes?: string
+  terms?: string
+}
+
+export type UpdateInvoiceStatusInput = {
+  invoiceId: string
+  status: InvoiceStatus
+}
+
+export type ToggleInvoiceVisibilityInput = {
+  invoiceId: string
+  visible: boolean
+}
+
 export type CreateClientInput = {
   email: string
   password: string

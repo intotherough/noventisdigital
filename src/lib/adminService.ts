@@ -5,8 +5,12 @@ import type {
   AuditLogRecord,
   ClientUpload,
   CreateClientInput,
+  CreateInvoiceInput,
+  Invoice,
   ResetClientPasswordInput,
+  ToggleInvoiceVisibilityInput,
   UpdateClientInput,
+  UpdateInvoiceStatusInput,
   UploadClientPackInput,
 } from '../types'
 import { hasSupabase, supabase, supabaseUrl } from './supabase'
@@ -46,6 +50,8 @@ type AdminFunctionPayload = {
   clients?: AdminClientRecord[]
   auditLogs?: AuditLogRecord[]
   client?: AdminClientRecord
+  invoices?: Invoice[]
+  invoice?: Invoice
 }
 
 function getAdminNameFromSession(session: Session) {
@@ -276,6 +282,50 @@ export async function uploadClientPack(input: UploadClientPackInput) {
   if (!response.ok || !result?.ok) {
     throw new Error(result?.error ?? 'Pack upload failed.')
   }
+}
+
+export async function listInvoices(): Promise<Invoice[]> {
+  const result = await invokeAdminAction<{ ok: true; invoices: Invoice[] }>(
+    'listInvoices',
+  )
+  return result.invoices ?? []
+}
+
+export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice> {
+  const result = await invokeAdminAction<{ ok: true; invoice: Invoice }>(
+    'createInvoice',
+    input as unknown as Record<string, unknown>,
+  )
+  if (!result.invoice) {
+    throw new Error('Invoice was not returned by the admin function.')
+  }
+  return result.invoice
+}
+
+export async function updateInvoiceStatus(
+  input: UpdateInvoiceStatusInput,
+): Promise<Invoice> {
+  const result = await invokeAdminAction<{ ok: true; invoice: Invoice }>(
+    'updateInvoiceStatus',
+    input as unknown as Record<string, unknown>,
+  )
+  if (!result.invoice) {
+    throw new Error('Invoice was not returned by the admin function.')
+  }
+  return result.invoice
+}
+
+export async function toggleInvoiceVisibility(
+  input: ToggleInvoiceVisibilityInput,
+): Promise<Invoice> {
+  const result = await invokeAdminAction<{ ok: true; invoice: Invoice }>(
+    'toggleInvoiceVisibility',
+    input as unknown as Record<string, unknown>,
+  )
+  if (!result.invoice) {
+    throw new Error('Invoice was not returned by the admin function.')
+  }
+  return result.invoice
 }
 
 export async function listClientUploadsForUser(userId: string): Promise<ClientUpload[]> {

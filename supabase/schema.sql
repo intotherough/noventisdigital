@@ -400,3 +400,80 @@ comment on table public.quotes is 'Client-facing quote records surfaced in the N
 comment on table public.admin_users is 'Users allowed to access the Noventis admin console.';
 comment on table public.portal_audit_logs is 'Audit trail for client portal activity and admin console actions.';
 comment on table public.client_uploads is 'Files uploaded by portal clients back to Noventis.';
+create sequence if not exists public.invoices_sequence start 1;
+
+create table if not exists public.invoices (
+  id uuid primary key default gen_random_uuid(),
+  invoice_number text unique,
+  invoice_sequence integer unique,
+  auth_user_id uuid references auth.users(id) on delete set null,
+  client_name text not null,
+  client_company text not null,
+  client_email text not null,
+  billing_email text,
+  issue_date date not null default current_date,
+  due_date date not null,
+  line_items jsonb not null default '[]'::jsonb,
+  notes text not null default '',
+  terms text not null default 'Payment due within 14 days of invoice date.',
+  subtotal numeric(10, 2) not null default 0,
+  total_amount numeric(10, 2) not null default 0,
+  currency text not null default 'GBP',
+  status text not null default 'draft' check (status in ('draft', 'sent', 'paid', 'cancelled')),
+  visible_to_client boolean not null default false,
+  sent_at timestamptz,
+  paid_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists invoices_auth_user_id_created_at_idx
+on public.invoices (auth_user_id, created_at desc);
+
+create index if not exists invoices_status_idx
+on public.invoices (status);
+
+create or replace function public.assign_invoice_number()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.invoice_sequence is null then
+    new.invoice_sequence := nextval('public.invoices_sequence');
+  end if;
+  new.invoice_number := 'NOV-' || lpad(new.invoice_sequence::text, 4, '0');
+  return new;
+end;
+$$;
+
+drop trigger if exists invoices_assign_number on public.invoices;
+create trigger invoices_assign_number
+before insert on public.invoices
+for each row
+execute function public.assign_invoice_number();
+
+drop trigger if exists invoices_set_updated_at on public.invoices;
+create trigger invoices_set_updated_at
+before update on public.invoices
+for each row
+execute function public.set_updated_at();
+
+alter table public.invoices enable row level security;
+
+drop policy if exists "Clients can view own visible invoices" on public.invoices;
+drop policy if exists "Service role can manage invoices" on public.invoices;
+
+create policy "Clients can view own visible invoices"
+on public.invoices
+for select
+to authenticated
+using (auth.uid() = auth_user_id and visible_to_client = true);
+
+create policy "Service role can manage invoices"
+on public.invoices
+for all
+using (auth.role() = 'service_role')
+with check (auth.role() = 'service_role');
+
+comment on table public.invoices is 'UK GBP invoices issued to portal clients. Sequential numbering enforced by trigger.';
