@@ -1,1 +1,0 @@
-import{t as e}from"./supabase-E_TcLrZV.js";var t=`https://ainqsfmgtanpabuaofzm.supabase.co`,n=`eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpbnFzZm1ndGFucGFidWFvZnptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzQzNTksImV4cCI6MjA5MTE1MDM1OX0.NfEMkQTGQQvpnsuWlpYY5Uc0kwtFknTnNv-u8kIc49k`,r=!0,i=r?e(t,n):null;export{i as n,t as r,r as t};
