@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { HeroRibbon } from '../components/HeroRibbon'
 import { submitPublicContactForm } from '../lib/publicSiteService'
 
 const engagements = [
@@ -160,43 +161,7 @@ export function HomePage() {
       <main>
         <section className="hero-section hero-section--glass">
           <div className="container hero-column">
-            <div aria-hidden="true" className="hero-aura">
-              <span className="hero-orbit hero-orbit--outer" />
-              <span className="hero-orbit hero-orbit--inner" />
-              <span
-                className="hero-comet hero-comet--one"
-                onClick={(e) => {
-                  const el = e.currentTarget
-                  el.classList.remove('is-popped')
-                  void el.offsetWidth
-                  el.classList.add('is-popped')
-                }}
-              >
-                Plan
-              </span>
-              <span
-                className="hero-comet hero-comet--two"
-                onClick={(e) => {
-                  const el = e.currentTarget
-                  el.classList.remove('is-popped')
-                  void el.offsetWidth
-                  el.classList.add('is-popped')
-                }}
-              >
-                Build
-              </span>
-              <span
-                className="hero-comet hero-comet--three"
-                onClick={(e) => {
-                  const el = e.currentTarget
-                  el.classList.remove('is-popped')
-                  void el.offsetWidth
-                  el.classList.add('is-popped')
-                }}
-              >
-                Run
-              </span>
-            </div>
+            <HeroRibbon />
 
             <p className="eyebrow motion-reveal motion-reveal--1">
               Fractional CTO. AI strategy. Hands-on build.
