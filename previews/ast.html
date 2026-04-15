@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noventis - AST preview</title>
+    <style>
+      :root {
+        --bg: #0a0a0d;
+        --text: #f1ece3;
+        --muted: #aca393;
+        --copper: #c4884d;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .stage {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(900px 500px at 50% 45%, rgba(196, 136, 77, 0.04), transparent 70%),
+          var(--bg);
+      }
+      svg#tree {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        pointer-events: none;
+        padding: 8vh 2rem 0;
+        text-align: center;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin: 0 0 0.6rem;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 400;
+        font-size: clamp(1.5rem, 3vw, 2.4rem);
+        margin: 0 0 0.4rem;
+      }
+      .legend {
+        position: absolute;
+        bottom: 1.6rem;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.68rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(172, 163, 147, 0.55);
+      }
+
+      /* Node/edge opacity is driven per-frame from the camera distance;
+         no CSS visibility classes needed. */
+      .node rect {
+        fill: rgba(17, 17, 22, 0.92);
+        stroke: rgba(236, 225, 210, 0.45);
+        stroke-width: 1;
+      }
+      .node.is-leaf rect {
+        stroke: rgba(196, 136, 77, 0.75);
+        fill: rgba(196, 136, 77, 0.06);
+      }
+      .node.is-control rect {
+        stroke: rgba(236, 225, 210, 0.7);
+        fill: rgba(236, 225, 210, 0.04);
+      }
+      .node text {
+        fill: var(--text);
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 11px;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .edge {
+        stroke: rgba(236, 225, 210, 0.32);
+        stroke-width: 1;
+        fill: none;
+      }
+      .cross-edge {
+        fill: none;
+        stroke: rgba(196, 136, 77, 0.35);
+        stroke-width: 0.9;
+        stroke-dasharray: 3 5;
+      }
+
+      svg#tree { overflow: visible; }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <svg id="tree" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="overlay">
+        <p class="eyebrow">Preview · Navigating the code universe</p>
+        <h1>Code has a shape.</h1>
+      </div>
+      <div class="legend">Slow drift · trees spawn as you approach</div>
+    </div>
+
+    <script>
+      (() => {
+        const svg = document.getElementById('tree')
+        const exprEl = document.getElementById('expr')
+
+        // AST shape: { label, expr (for display), children: [] }
+        // Each tree represents a real control-flow expression.
+        const TREES = [
+          {
+            // Iteration: functional pipeline with filter/map/reduce.
+            // Wrapped in ship(audit, ...) so it shares labels with other trees.
+            expr: "ship(audit, pipe(filter(vendors, v => v.cost > budget), map(replace), reduce(sum, 0)))",
+            root: {
+              label: 'ship', children: [
+                { label: 'audit', children: [] },
+                { label: 'pipe', children: [
+                  { label: 'filter', children: [
+                    { label: 'vendors', children: [] },
+                    { label: '=>', children: [
+                      { label: 'v', children: [] },
+                      { label: '>', children: [
+                        { label: '.cost', children: [
+                          { label: 'v', children: [] },
+                        ]},
+                        { label: 'budget', children: [] },
+                      ]},
+                    ]},
+                  ]},
+                  { label: 'map', children: [
+                    { label: 'replace', children: [] },
+                  ]},
+                  { label: 'reduce', children: [
+                    { label: 'sum', children: [] },
+                    { label: '0', children: [] },
+                  ]},
+                ]},
+              ]
+            }
+          },
+          {
+            // Loop + reflection + print
+            expr: "while (ownKeys(stack).length) { const t = pop(stack); if (t.broken) stabilise(t); print(t) }",
+            root: {
+              label: 'while', children: [
+                { label: '.length', children: [
+                  { label: 'ownKeys', children: [
+                    { label: 'stack', children: [] },
+                  ]},
+                ]},
+                { label: 'block', children: [
+                  { label: 'const', children: [
+                    { label: 't', children: [] },
+                    { label: 'pop', children: [
+                      { label: 'stack', children: [] },
+                    ]},
+                  ]},
+                  { label: 'if', children: [
+                    { label: '.broken', children: [
+                      { label: 't', children: [] },
+                    ]},
+                    { label: 'stabilise', children: [
+                      { label: 't', children: [] },
+                    ]},
+                  ]},
+                  { label: 'print', children: [
+                    { label: 't', children: [] },
+                  ]},
+                ]},
+              ]
+            }
+          },
+          {
+            // for-of iteration with conditional print
+            expr: "for (c of clients) { const a = audit(c); if (a.risk > 3) print(a); ship(stabilise(a)) }",
+            root: {
+              label: 'for', children: [
+                { label: 'c', children: [] },
+                { label: 'clients', children: [] },
+                { label: 'block', children: [
+                  { label: 'const', children: [
+                    { label: 'a', children: [] },
+                    { label: 'audit', children: [
+                      { label: 'c', children: [] },
+                    ]},
+                  ]},
+                  { label: 'if', children: [
+                    { label: '>', children: [
+                      { label: '.risk', children: [
+                        { label: 'a', children: [] },
+                      ]},
+                      { label: '3', children: [] },
+                    ]},
+                    { label: 'print', children: [
+                      { label: 'a', children: [] },
+                    ]},
+                  ]},
+                  { label: 'ship', children: [
+                    { label: 'stabilise', children: [
+                      { label: 'a', children: [] },
+                    ]},
+                  ]},
+                ]},
+              ]
+            }
+          },
+          {
+            // Labeled loop with goto
+            expr: "retry: while (true) { const r = audit(); if (r.unsafe) { stabilise(r); goto retry } ship(build(r)) }",
+            root: {
+              label: 'label', children: [
+                { label: 'retry', children: [] },
+                { label: 'while', children: [
+                  { label: 'true', children: [] },
+                  { label: 'block', children: [
+                    { label: 'const', children: [
+                      { label: 'r', children: [] },
+                      { label: 'audit', children: [] },
+                    ]},
+                    { label: 'if', children: [
+                      { label: '.unsafe', children: [
+                        { label: 'r', children: [] },
+                      ]},
+                      { label: 'block', children: [
+                        { label: 'stabilise', children: [
+                          { label: 'r', children: [] },
+                        ]},
+                        { label: 'goto', children: [
+                          { label: 'retry', children: [] },
+                        ]},
+                      ]},
+                    ]},
+                    { label: 'ship', children: [
+                      { label: 'build', children: [
+                        { label: 'r', children: [] },
+                      ]},
+                    ]},
+                  ]},
+                ]},
+              ]
+            }
+          },
+          {
+            // Recursive reflection - walks a tree, prints each node's risk
+            expr: "function audit(n) { print(reflect(n).risk); n.deps?.forEach(audit) }",
+            root: {
+              label: 'function', children: [
+                { label: 'audit', children: [] },
+                { label: 'n', children: [] },
+                { label: 'block', children: [
+                  { label: 'print', children: [
+                    { label: '.risk', children: [
+                      { label: 'reflect', children: [
+                        { label: 'n', children: [] },
+                      ]},
+                    ]},
+                  ]},
+                  { label: 'forEach', children: [
+                    { label: '.deps', children: [
+                      { label: 'n', children: [] },
+                    ]},
+                    { label: 'audit', children: [] },
+                  ]},
+                ]},
+              ]
+            }
+          },
+        ]
+
+        const svgNS = 'http://www.w3.org/2000/svg'
+
+        let viewW = 0, viewH = 0
+        function resize() {
+          const rect = svg.getBoundingClientRect()
+          viewW = rect.width
+          viewH = rect.height
+          svg.setAttribute('viewBox', `0 0 ${viewW} ${viewH}`)
+        }
+        window.addEventListener('resize', resize)
+        resize()
+
+        // Camera group holds every tree. We pan this group, so all trees move as one.
+        const camera = document.createElementNS(svgNS, 'g')
+        camera.setAttribute('id', 'camera')
+        svg.appendChild(camera)
+
+        // Tree layout: each leaf gets an integer x slot; parents are the midpoint of their children.
+        let leafCounter
+        function assign(node, depth = 0) {
+          node.depth = depth
+          if (node.children.length === 0) {
+            node.x = leafCounter++
+          } else {
+            for (const c of node.children) assign(c, depth + 1)
+            const first = node.children[0]
+            const last = node.children[node.children.length - 1]
+            node.x = (first.x + last.x) / 2
+          }
+        }
+
+        function treeDepth(node) {
+          if (node.children.length === 0) return 1
+          return 1 + Math.max(...node.children.map(treeDepth))
+        }
+
+        function countLeaves(node) {
+          if (node.children.length === 0) return 1
+          return node.children.reduce((s, c) => s + countLeaves(c), 0)
+        }
+
+        function flatten(node, list = []) {
+          list.push(node)
+          for (const c of node.children) flatten(c, list)
+          return list
+        }
+
+        function bfsOrder(root) {
+          const out = []
+          const q = [root]
+          while (q.length) {
+            const n = q.shift()
+            out.push(n)
+            for (const c of n.children) q.push(c)
+          }
+          return out
+        }
+
+        // Control-flow keywords get a distinct visual tint
+        const CONTROL = new Set([
+          'while', 'for', 'if', 'else', 'block', 'function', 'const', 'let',
+          'label', 'goto', 'break', 'continue', 'return', '=>'
+        ])
+
+        const X_STEP = 82      // horizontal gap between leaves within a tree
+        const Y_STEP = 74      // vertical gap between depth levels
+        const CHAR_W = 6.3
+        const PAD_X = 14
+        const RECT_H = 22
+        const HALF_H = RECT_H / 2
+        const LABEL_OFFSET = 44 // space above the root for the expression caption
+
+        // Layer order (painted back-to-front): cross-edges, tree edges, nodes
+        const crossEdgeLayer = document.createElementNS(svgNS, 'g')
+        crossEdgeLayer.setAttribute('class', 'cross-edge-layer')
+        camera.appendChild(crossEdgeLayer)
+        const treeLayer = document.createElementNS(svgNS, 'g')
+        treeLayer.setAttribute('class', 'tree-layer')
+        camera.appendChild(treeLayer)
+
+        // Build one tree into the scene and return its nodes in WORLD coordinates.
+        function buildTree(tree, worldX, worldY) {
+          const root = JSON.parse(JSON.stringify(tree.root))
+          leafCounter = 0
+          assign(root)
+          const leaves = countLeaves(root)
+          const depth = treeDepth(root)
+          const nodes = flatten(root)
+
+          // Local coordinates centred on (0,0)
+          const treeWidth = Math.max(1, leaves - 1) * X_STEP
+          const treeHeight = Math.max(1, depth - 1) * Y_STEP
+          for (const n of nodes) {
+            n.px = n.x * X_STEP - treeWidth / 2
+            n.py = n.depth * Y_STEP - treeHeight / 2
+            n.worldX = worldX + n.px
+            n.worldY = worldY + n.py
+          }
+
+          const group = document.createElementNS(svgNS, 'g')
+          group.setAttribute('class', 'tree-group')
+          group.setAttribute('transform', `translate(${worldX} ${worldY})`)
+          treeLayer.appendChild(group)
+
+          // Node elements (built first so edges can reference them)
+          const nodeEls = []
+          const nodeRefMap = new Map() // original node -> entry
+          for (const n of nodes) {
+            const g = document.createElementNS(svgNS, 'g')
+            const cls = ['node']
+            if (n.children.length === 0) cls.push('is-leaf')
+            else if (CONTROL.has(n.label)) cls.push('is-control')
+            g.setAttribute('class', cls.join(' '))
+            g.setAttribute('transform', `translate(${n.px} ${n.py})`)
+            g.style.opacity = 0
+            const w = Math.max(36, n.label.length * CHAR_W + PAD_X)
+            const rect = document.createElementNS(svgNS, 'rect')
+            rect.setAttribute('x', -w / 2)
+            rect.setAttribute('y', -HALF_H)
+            rect.setAttribute('width', w)
+            rect.setAttribute('height', RECT_H)
+            rect.setAttribute('rx', 4)
+            g.appendChild(rect)
+            const text = document.createElementNS(svgNS, 'text')
+            text.textContent = n.label
+            g.appendChild(text)
+            const entry = { label: n.label, worldX: n.worldX, worldY: n.worldY, el: g, vis: 0 }
+            nodeEls.push(entry)
+            nodeRefMap.set(n, entry)
+          }
+
+          // Intra-tree edges - drawn in their own sub-group BEHIND the nodes
+          const edgeSubgroup = document.createElementNS(svgNS, 'g')
+          group.insertBefore(edgeSubgroup, group.firstChild)
+          const edgeEls = []
+          for (const n of nodes) {
+            for (const c of n.children) {
+              const path = document.createElementNS(svgNS, 'path')
+              const midY = (n.py + c.py) / 2
+              const d = `M ${n.px} ${n.py + HALF_H} C ${n.px} ${midY}, ${c.px} ${midY}, ${c.px} ${c.py - HALF_H}`
+              path.setAttribute('d', d)
+              path.setAttribute('class', 'edge')
+              path.style.opacity = 0
+              edgeSubgroup.appendChild(path)
+              edgeEls.push({ el: path, a: nodeRefMap.get(n), b: nodeRefMap.get(c) })
+            }
+          }
+
+          // Append node groups AFTER edge subgroup so they paint on top
+          for (const e of nodeEls) group.appendChild(e.el)
+
+          return { group, worldX, worldY, nodeEls, edgeEls, treeWidth, treeHeight }
+        }
+
+        // World layout - trees placed as a tight cluster around a common centre
+        const WORLD_POSITIONS = [
+          { x:  440, y:  420 },
+          { x: 1120, y:  440 },
+          { x: 1260, y:  980 },
+          { x:  680, y: 1080 },
+          { x:  220, y:  780 },
+        ]
+
+        const allTrees = []
+        const allNodes = []
+        const allEdges = []
+        for (let i = 0; i < TREES.length; i++) {
+          const pos = WORLD_POSITIONS[i % WORLD_POSITIONS.length]
+          const tree = buildTree(TREES[i], pos.x, pos.y)
+          allTrees.push(tree)
+          for (const nd of tree.nodeEls) {
+            nd.treeIdx = i
+            allNodes.push(nd)
+          }
+          for (const ed of tree.edgeEls) {
+            allEdges.push(ed)
+          }
+        }
+
+        // Cross-tree connections: wherever the same label appears in two different
+        // trees, draw a long curved line between them. This is what makes it feel
+        // like one continuous codebase rather than isolated bodies.
+        const SHARED_LABELS = [
+          'audit', 'ship', 'stabilise', 'build', 'print',
+          'while', 'if', 'block', 'const', '.risk', 'reflect',
+        ]
+        const labelMap = new Map()
+        for (const n of allNodes) {
+          if (!labelMap.has(n.label)) labelMap.set(n.label, [])
+          labelMap.get(n.label).push(n)
+        }
+
+        const crossEdges = []
+        for (const label of SHARED_LABELS) {
+          const group = labelMap.get(label) || []
+          for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) {
+              const a = group[i]
+              const b = group[j]
+              if (a.treeIdx === b.treeIdx) continue
+              const dx = b.worldX - a.worldX
+              const dy = b.worldY - a.worldY
+              const dist = Math.hypot(dx, dy)
+              if (dist < 1) continue
+              const nx = -dy / dist
+              const ny = dx / dist
+              const sign = ((i + j + label.length) % 2 === 0) ? 1 : -1
+              const curve = Math.min(260, dist * 0.28) * sign
+              const cpx = (a.worldX + b.worldX) / 2 + nx * curve
+              const cpy = (a.worldY + b.worldY) / 2 + ny * curve
+              const path = document.createElementNS(svgNS, 'path')
+              path.setAttribute('d', `M ${a.worldX} ${a.worldY} Q ${cpx} ${cpy} ${b.worldX} ${b.worldY}`)
+              path.setAttribute('class', 'cross-edge')
+              path.style.opacity = 0
+              crossEdgeLayer.appendChild(path)
+              crossEdges.push({ el: path, a, b })
+            }
+          }
+        }
+
+        // Build adjacency for the whole graph: tree edges AND cross-tree edges.
+        // DFS from tree 1's root produces a single walk that threads through
+        // every tree via shared-label bridges.
+        const adjacency = new Map()
+        for (const n of allNodes) adjacency.set(n, [])
+        for (const e of allEdges) {
+          adjacency.get(e.a).push(e.b)
+          adjacency.get(e.b).push(e.a)
+        }
+        for (const e of crossEdges) {
+          adjacency.get(e.a).push(e.b)
+          adjacency.get(e.b).push(e.a)
+        }
+
+        const walk = []
+        const walkSet = new Set()
+        function dfsWalk(node) {
+          if (walkSet.has(node)) return
+          walkSet.add(node)
+          walk.push(node)
+          for (const nb of adjacency.get(node)) dfsWalk(nb)
+        }
+        dfsWalk(allNodes[0])
+        // Append any unreached nodes at the end (shouldn't happen but safety)
+        for (const n of allNodes) {
+          if (!walkSet.has(n)) { walk.push(n); walkSet.add(n) }
+        }
+
+        // Precompute reveal times - long jumps between trees take proportionally
+        // longer so the camera has time to catch up.
+        const BASE_REVEAL_MS = 840
+        const JUMP_MS_PER_UNIT = 1.2
+        const MAX_JUMP_BONUS = 2700
+        const revealTimes = [0]
+        for (let i = 1; i < walk.length; i++) {
+          const prev = walk[i - 1]
+          const cur = walk[i]
+          const d = Math.hypot(cur.worldX - prev.worldX, cur.worldY - prev.worldY)
+          const bonus = Math.min(MAX_JUMP_BONUS, d * JUMP_MS_PER_UNIT)
+          revealTimes[i] = revealTimes[i - 1] + BASE_REVEAL_MS + bonus
+        }
+        const walkDurationMs = revealTimes[walk.length - 1] + BASE_REVEAL_MS
+
+        function walkIdxFloat(t) {
+          if (t <= 0) return 0
+          if (t >= walkDurationMs) return walk.length - 1
+          for (let i = 0; i < walk.length - 1; i++) {
+            if (revealTimes[i + 1] > t) {
+              const span = Math.max(1, revealTimes[i + 1] - revealTimes[i])
+              return i + (t - revealTimes[i]) / span
+            }
+          }
+          return walk.length - 1
+        }
+
+        // Centroid of the whole graph - used by the "admire" camera phase
+        let sumX = 0, sumY = 0
+        for (const n of allNodes) { sumX += n.worldX; sumY += n.worldY }
+        const centerX = sumX / allNodes.length
+        const centerY = sumY / allNodes.length
+
+        const BASE_ZOOM = 1.05
+        const OVERVIEW_ZOOM = 0.55
+        const HOLD_MS = 3000     // admire the completed graph
+        const FADE_MS = 1400     // fade everything to black
+        const REBUILD_GAP_MS = 300 // brief pause before rebuilding
+        const totalCycleMs = walkDurationMs + HOLD_MS + FADE_MS + REBUILD_GAP_MS
+        const FADE_IN_WIDTH = 0.85 // walk-index width over which a single node fades in
+
+        let startTime = 0
+        const camPos = { x: walk[0].worldX, y: walk[0].worldY, z: BASE_ZOOM }
+
+        function tick(now) {
+          if (!startTime) startTime = now
+          const cycleTime = (now - startTime) % totalCycleMs
+
+          let idxFloat, globalFade, targetX, targetY, targetZ
+
+          if (cycleTime < walkDurationMs) {
+            // Build phase - reveal nodes one by one, camera chases the head
+            idxFloat = walkIdxFloat(cycleTime)
+            globalFade = 1
+            const headI = Math.min(walk.length - 1, Math.floor(idxFloat))
+            const head = walk[headI]
+            targetX = head.worldX
+            targetY = head.worldY
+            targetZ = BASE_ZOOM
+          } else if (cycleTime < walkDurationMs + HOLD_MS) {
+            // Hold - zoom out slightly and let the finished graph breathe
+            idxFloat = walk.length
+            globalFade = 1
+            targetX = centerX
+            targetY = centerY
+            targetZ = OVERVIEW_ZOOM
+          } else if (cycleTime < walkDurationMs + HOLD_MS + FADE_MS) {
+            // Fade everything
+            idxFloat = walk.length
+            const f = (cycleTime - walkDurationMs - HOLD_MS) / FADE_MS
+            globalFade = 1 - f * f * (3 - 2 * f) // smoothstep
+            targetX = centerX
+            targetY = centerY
+            targetZ = OVERVIEW_ZOOM
+          } else {
+            // Brief gap - graph dark, camera pulls back to walk[0]
+            idxFloat = 0
+            globalFade = 0
+            targetX = walk[0].worldX
+            targetY = walk[0].worldY
+            targetZ = BASE_ZOOM
+          }
+
+          // Smoothly move the camera toward its target
+          camPos.x += (targetX - camPos.x) * 0.06
+          camPos.y += (targetY - camPos.y) * 0.06
+          camPos.z += (targetZ - camPos.z) * 0.035
+
+          const wobbleX = Math.sin(now * 0.00026) * 10
+          const wobbleY = Math.cos(now * 0.00022) * 8
+          const wobbleZ = Math.sin(now * 0.00013) * 0.02
+          const fx = camPos.x + wobbleX
+          const fy = camPos.y + wobbleY
+          const fz = Math.max(0.1, camPos.z + wobbleZ)
+
+          camera.setAttribute(
+            'transform',
+            `translate(${viewW / 2} ${viewH / 2}) scale(${fz}) translate(${-fx} ${-fy})`
+          )
+
+          // Continuous build: nodes fade in as the head passes them, stay lit.
+          const N = walk.length
+          for (let i = 0; i < N; i++) {
+            const rel = idxFloat - i
+            let v
+            if (rel >= FADE_IN_WIDTH) v = 1
+            else if (rel > 0) {
+              const t = rel / FADE_IN_WIDTH
+              v = t * t * (3 - 2 * t)
+            } else v = 0
+            v *= globalFade
+            walk[i].vis = v
+            walk[i].el.style.opacity = v
+          }
+          for (const e of allEdges) {
+            e.el.style.opacity = Math.min(e.a.vis, e.b.vis)
+          }
+          for (const e of crossEdges) {
+            e.el.style.opacity = Math.min(e.a.vis, e.b.vis) * 0.85
+          }
+
+          requestAnimationFrame(tick)
+        }
+
+        requestAnimationFrame(tick)
+      })()
+    </script>
+  </body>
+</html>

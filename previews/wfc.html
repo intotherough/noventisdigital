@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noventis - WFC preview</title>
+    <style>
+      :root {
+        --bg: #0a0a0d;
+        --text: #f1ece3;
+        --muted: #aca393;
+        --copper: #c4884d;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .stage {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(1000px 600px at 50% 50%, rgba(196, 136, 77, 0.05), transparent 70%),
+          var(--bg);
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+        padding: 0 2rem;
+        text-align: center;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin: 0 0 1rem;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 400;
+        font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+        margin: 0 0 0.8rem;
+      }
+      p {
+        max-width: 44ch;
+        color: var(--muted);
+        line-height: 1.5;
+        margin: 0;
+        font-size: 0.92rem;
+      }
+      .legend {
+        position: absolute;
+        bottom: 1.6rem;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.68rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(172, 163, 147, 0.55);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <canvas id="wfc"></canvas>
+      <div class="overlay">
+        <p class="eyebrow">Preview · Wave function collapse</p>
+        <h1>The grid resolves itself.</h1>
+        <p>
+          Each tile chooses its shape so its edges match every neighbour. The
+          algorithm drawing itself.
+        </p>
+      </div>
+      <div class="legend">Watch it collapse · restarts automatically</div>
+    </div>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById('wfc')
+        const ctx = canvas.getContext('2d')
+        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+        let width = 0
+        let height = 0
+        let cols = 0
+        let rows = 0
+        const CELL = 62
+
+        function resize() {
+          const rect = canvas.getBoundingClientRect()
+          width = rect.width
+          height = rect.height
+          canvas.width = Math.floor(width * dpr)
+          canvas.height = Math.floor(height * dpr)
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+          cols = Math.floor(width / CELL)
+          rows = Math.floor(height / CELL)
+          start()
+        }
+
+        // Tiles: edges as [top, right, bottom, left], 0 = open, 1 = connected
+        // Weighted so straights and empties are common, crosses rare.
+        const TILES = [
+          { edges: [0, 0, 0, 0], weight: 2 },  // empty
+          { edges: [1, 0, 1, 0], weight: 5 },  // vertical
+          { edges: [0, 1, 0, 1], weight: 5 },  // horizontal
+          { edges: [1, 1, 0, 0], weight: 3 },  // L: top-right
+          { edges: [0, 1, 1, 0], weight: 3 },  // L: right-bottom
+          { edges: [0, 0, 1, 1], weight: 3 },  // L: bottom-left
+          { edges: [1, 0, 0, 1], weight: 3 },  // L: left-top
+          { edges: [1, 1, 1, 0], weight: 1 },  // T up-right-down
+          { edges: [0, 1, 1, 1], weight: 1 },  // T right-down-left
+          { edges: [1, 0, 1, 1], weight: 1 },  // T up-down-left
+          { edges: [1, 1, 0, 1], weight: 1 },  // T up-right-left
+          { edges: [1, 1, 1, 1], weight: 0.5 }, // cross (rare)
+        ]
+
+        let grid = []       // per cell: { possible: Set<int>, tile: int | -1, age: number }
+        let queue = []      // propagation queue
+        let done = false
+        let pauseUntil = 0
+        let fadeAlpha = 0
+
+        function start() {
+          grid = new Array(cols * rows)
+          for (let i = 0; i < grid.length; i++) {
+            grid[i] = {
+              possible: new Set(TILES.map((_, idx) => idx)),
+              tile: -1,
+              age: 0,
+            }
+          }
+          queue = []
+          done = false
+          pauseUntil = 0
+          fadeAlpha = 1
+        }
+
+        function idx(x, y) { return y * cols + x }
+        function inBounds(x, y) { return x >= 0 && y >= 0 && x < cols && y < rows }
+
+        // direction offsets [top, right, bottom, left]
+        const DX = [0, 1, 0, -1]
+        const DY = [-1, 0, 1, 0]
+        const OPP = [2, 3, 0, 1]
+
+        function canConnect(tileA, dir, tileB) {
+          return TILES[tileA].edges[dir] === TILES[tileB].edges[OPP[dir]]
+        }
+
+        function findMinEntropyCell() {
+          let best = -1
+          let bestCount = Infinity
+          for (let i = 0; i < grid.length; i++) {
+            const c = grid[i]
+            if (c.tile !== -1) continue
+            const n = c.possible.size
+            if (n === 0) return { idx: i, count: 0 }
+            if (n < bestCount || (n === bestCount && Math.random() < 0.3)) {
+              best = i
+              bestCount = n
+            }
+          }
+          return best === -1 ? null : { idx: best, count: bestCount }
+        }
+
+        function collapse(i) {
+          const c = grid[i]
+          const opts = [...c.possible]
+          if (opts.length === 0) return false
+          let totalW = 0
+          for (const t of opts) totalW += TILES[t].weight
+          let r = Math.random() * totalW
+          let chosen = opts[0]
+          for (const t of opts) {
+            r -= TILES[t].weight
+            if (r <= 0) { chosen = t; break }
+          }
+          c.possible = new Set([chosen])
+          c.tile = chosen
+          c.age = 0
+          queue.push(i)
+          return true
+        }
+
+        function propagate() {
+          // Do up to 60 propagation steps per call
+          let steps = 60
+          while (queue.length && steps-- > 0) {
+            const i = queue.shift()
+            const cx = i % cols
+            const cy = Math.floor(i / cols)
+            const self = grid[i]
+            if (self.tile === -1) continue
+            for (let d = 0; d < 4; d++) {
+              const nx = cx + DX[d]
+              const ny = cy + DY[d]
+              if (!inBounds(nx, ny)) continue
+              const nIdx = idx(nx, ny)
+              const neigh = grid[nIdx]
+              if (neigh.tile !== -1) continue
+              let changed = false
+              const toRemove = []
+              for (const t of neigh.possible) {
+                if (!canConnect(self.tile, d, t)) toRemove.push(t)
+              }
+              for (const t of toRemove) {
+                neigh.possible.delete(t)
+                changed = true
+              }
+              if (changed) queue.push(nIdx)
+            }
+          }
+        }
+
+        function step() {
+          if (queue.length > 0) {
+            propagate()
+            return
+          }
+          const result = findMinEntropyCell()
+          if (!result) {
+            done = true
+            pauseUntil = performance.now() + 2400
+            return
+          }
+          if (result.count === 0) {
+            // contradiction - reset this cell and a small patch
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                const x = (result.idx % cols) + dx
+                const y = Math.floor(result.idx / cols) + dy
+                if (!inBounds(x, y)) continue
+                const ci = idx(x, y)
+                grid[ci].tile = -1
+                grid[ci].possible = new Set(TILES.map((_, k) => k))
+                grid[ci].age = 0
+              }
+            }
+            return
+          }
+          collapse(result.idx)
+        }
+
+        function drawTile(cx, cy, tileIdx, alpha) {
+          const tile = TILES[tileIdx]
+          const cxp = cx * CELL + CELL / 2
+          const cyp = cy * CELL + CELL / 2
+          const half = CELL / 2
+
+          // soft background glow for occupied tiles
+          if (tile.edges.some(e => e === 1)) {
+            const g = ctx.createRadialGradient(cxp, cyp, 0, cxp, cyp, half)
+            g.addColorStop(0, `rgba(196, 136, 77, ${0.05 * alpha})`)
+            g.addColorStop(1, 'rgba(196, 136, 77, 0)')
+            ctx.fillStyle = g
+            ctx.fillRect(cx * CELL, cy * CELL, CELL, CELL)
+          }
+
+          ctx.lineWidth = 1.4
+          ctx.strokeStyle = `rgba(236, 225, 210, ${0.78 * alpha})`
+          ctx.lineCap = 'round'
+
+          // For each connected edge, draw a path from the edge midpoint toward center.
+          // If two adjacent edges connect, curve between them. If opposite, straight through.
+          const count = tile.edges.filter(e => e === 1).length
+          const opp = (tile.edges[0] && tile.edges[2]) || (tile.edges[1] && tile.edges[3])
+
+          if (count === 0) return
+
+          if (count === 2 && opp) {
+            ctx.beginPath()
+            if (tile.edges[0] && tile.edges[2]) {
+              ctx.moveTo(cxp, cyp - half)
+              ctx.lineTo(cxp, cyp + half)
+            } else {
+              ctx.moveTo(cxp - half, cyp)
+              ctx.lineTo(cxp + half, cyp)
+            }
+            ctx.stroke()
+            return
+          }
+
+          if (count === 2 && !opp) {
+            // L-corner: quarter arc between the two connected edges
+            ctx.beginPath()
+            let startX, startY, cpX, cpY, endX, endY
+            if (tile.edges[0] && tile.edges[1]) {
+              startX = cxp; startY = cyp - half
+              endX = cxp + half; endY = cyp
+              cpX = cxp; cpY = cyp
+            } else if (tile.edges[1] && tile.edges[2]) {
+              startX = cxp + half; startY = cyp
+              endX = cxp; endY = cyp + half
+              cpX = cxp; cpY = cyp
+            } else if (tile.edges[2] && tile.edges[3]) {
+              startX = cxp; startY = cyp + half
+              endX = cxp - half; endY = cyp
+              cpX = cxp; cpY = cyp
+            } else {
+              startX = cxp - half; startY = cyp
+              endX = cxp; endY = cyp - half
+              cpX = cxp; cpY = cyp
+            }
+            ctx.moveTo(startX, startY)
+            ctx.quadraticCurveTo(cpX, cpY, endX, endY)
+            ctx.stroke()
+            return
+          }
+
+          // T or cross: draw straight segments from each connected edge to center
+          for (let d = 0; d < 4; d++) {
+            if (!tile.edges[d]) continue
+            ctx.beginPath()
+            ctx.moveTo(cxp, cyp)
+            if (d === 0) ctx.lineTo(cxp, cyp - half)
+            else if (d === 1) ctx.lineTo(cxp + half, cyp)
+            else if (d === 2) ctx.lineTo(cxp, cyp + half)
+            else ctx.lineTo(cxp - half, cyp)
+            ctx.stroke()
+          }
+
+          // Small node at the junction
+          if (count >= 3) {
+            ctx.beginPath()
+            ctx.fillStyle = `rgba(196, 136, 77, ${0.85 * alpha})`
+            ctx.arc(cxp, cyp, 2.2, 0, Math.PI * 2)
+            ctx.fill()
+          }
+        }
+
+        function draw() {
+          ctx.fillStyle = 'rgba(10, 10, 13, 1)'
+          ctx.fillRect(0, 0, width, height)
+
+          // Grid of faint dots for uncollapsed cells
+          for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+              const c = grid[idx(x, y)]
+              if (c.tile === -1) {
+                ctx.fillStyle = 'rgba(236, 225, 210, 0.05)'
+                const cxp = x * CELL + CELL / 2
+                const cyp = y * CELL + CELL / 2
+                ctx.fillRect(cxp - 1, cyp - 1, 2, 2)
+              }
+            }
+          }
+
+          // Tiles
+          for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+              const c = grid[idx(x, y)]
+              if (c.tile === -1) continue
+              c.age = Math.min(1, c.age + 0.08)
+              const alpha = c.age * fadeAlpha
+              drawTile(x, y, c.tile, alpha)
+            }
+          }
+        }
+
+        let stepsPerFrame = 2
+        function loop(t) {
+          if (!done) {
+            for (let i = 0; i < stepsPerFrame; i++) step()
+          } else {
+            // fade out then restart
+            if (t > pauseUntil) {
+              fadeAlpha -= 0.02
+              if (fadeAlpha <= 0) start()
+            }
+          }
+          draw()
+          requestAnimationFrame(loop)
+        }
+
+        window.addEventListener('resize', resize)
+        resize()
+        requestAnimationFrame(loop)
+      })()
+    </script>
+  </body>
+</html>

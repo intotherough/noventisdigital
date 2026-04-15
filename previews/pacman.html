@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noventis - pacman AI preview</title>
+    <style>
+      :root {
+        --bg: #0a0a0d;
+        --text: #f1ece3;
+        --muted: #aca393;
+        --copper: #c4884d;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .stage {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(900px 500px at 50% 50%, rgba(196, 136, 77, 0.04), transparent 70%),
+          var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas {
+        display: block;
+        background: #0b0b0f;
+        border: 1px solid rgba(255, 245, 232, 0.08);
+        border-radius: 6px;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        pointer-events: none;
+        padding: 6vh 2rem 0;
+        text-align: center;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin: 0 0 0.6rem;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 400;
+        font-size: clamp(1.5rem, 3vw, 2.4rem);
+        margin: 0 0 0.6rem;
+      }
+      .hud {
+        position: absolute;
+        bottom: 1.6rem;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 2.2rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(172, 163, 147, 0.7);
+        pointer-events: none;
+      }
+      .hud strong {
+        color: var(--copper);
+        font-weight: 500;
+        letter-spacing: 0.1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <canvas id="pac"></canvas>
+      <div class="overlay">
+        <p class="eyebrow">Preview · Pac-Man AI</p>
+        <h1>BFS to food. Flee when chased.</h1>
+      </div>
+      <div class="hud">
+        <span>Eaten <strong id="eaten">0</strong></span>
+        <span>Boards <strong id="boards">0</strong></span>
+        <span>Caught <strong id="caught">0</strong></span>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById('pac')
+        const ctx = canvas.getContext('2d')
+        const eatenEl = document.getElementById('eaten')
+        const boardsEl = document.getElementById('boards')
+        const caughtEl = document.getElementById('caught')
+        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+        // 19 wide × 13 tall maze. '#' wall, '.' dot, 'o' big dot (cosmetic), ' ' empty, 'P' pac, 'G' ghost
+        const MAZE = [
+          "###################",
+          "#........#........#",
+          "#o##.###.#.###.##o#",
+          "#.................#",
+          "#.##.#.#####.#.##.#",
+          "#....#..GGG..#....#",
+          "#.##.########.##.##",
+          "#.................#",
+          "#.##.###.#.###.##.#",
+          "#o.#............#o#",
+          "##.#.#.#####.#.#.##",
+          "#....#...P...#....#",
+          "###################",
+        ]
+
+        const ROWS = MAZE.length
+        const COLS = MAZE[0].length
+        const CELL = 36
+
+        canvas.width = COLS * CELL * dpr
+        canvas.height = ROWS * CELL * dpr
+        canvas.style.width = COLS * CELL + 'px'
+        canvas.style.height = ROWS * CELL + 'px'
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+        const walls = new Set()
+        let dots = new Set()
+        let pills = new Set() // big dots
+        let pacStart = null
+        const ghostStarts = []
+
+        function parseMaze() {
+          walls.clear()
+          dots = new Set()
+          pills = new Set()
+          ghostStarts.length = 0
+          for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+              const ch = MAZE[y][x]
+              const k = `${x},${y}`
+              if (ch === '#') walls.add(k)
+              else if (ch === '.') dots.add(k)
+              else if (ch === 'o') pills.add(k)
+              else if (ch === 'P') pacStart = [x, y]
+              else if (ch === 'G') ghostStarts.push([x, y])
+            }
+          }
+        }
+        parseMaze()
+
+        const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+
+        function bfs(from, predicate, blocked = new Set()) {
+          const prev = new Map()
+          const start = `${from[0]},${from[1]}`
+          prev.set(start, null)
+          const q = [from]
+          let head = 0
+          while (head < q.length) {
+            const cur = q[head++]
+            if (predicate(cur)) {
+              const path = [cur]
+              let k = `${cur[0]},${cur[1]}`
+              while (prev.get(k)) {
+                const p = prev.get(k)
+                path.unshift(p)
+                k = `${p[0]},${p[1]}`
+              }
+              return path
+            }
+            for (const [dx, dy] of DIRS) {
+              const nx = cur[0] + dx
+              const ny = cur[1] + dy
+              if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) continue
+              const k = `${nx},${ny}`
+              if (walls.has(k)) continue
+              if (blocked.has(k)) continue
+              if (prev.has(k)) continue
+              prev.set(k, cur)
+              q.push([nx, ny])
+            }
+          }
+          return null
+        }
+
+        // entities: each has cell [x,y], next cell [nx,ny], interp 0..1, speed
+        function makeEntity(cell, speed) {
+          return {
+            x: cell[0],
+            y: cell[1],
+            nx: cell[0],
+            ny: cell[1],
+            progress: 1,
+            speed,
+            lastDir: [0, 0],
+          }
+        }
+
+        let pac, ghosts
+        let eaten = 0, boards = 0, caught = 0, flashUntil = 0
+
+        function reset() {
+          pac = makeEntity(pacStart, 0.13)
+          ghosts = ghostStarts.map((g, i) => makeEntity(g, 0.09 + i * 0.007))
+        }
+        reset()
+
+        function nearestGhostDist(fromX, fromY) {
+          let best = Infinity
+          for (const g of ghosts) {
+            const d = Math.abs(g.x - fromX) + Math.abs(g.y - fromY)
+            if (d < best) best = d
+          }
+          return best
+        }
+
+        function pickPacDir() {
+          // Called when pac is on a cell (progress >= 1). Returns next cell.
+          const from = [pac.x, pac.y]
+          // If a ghost is close, flee: BFS to cell that maximises distance from nearest ghost
+          const danger = nearestGhostDist(pac.x, pac.y) <= 4
+          if (danger) {
+            // Find a cell within 6 steps maximising dist to nearest ghost
+            let bestCell = null
+            let bestScore = -Infinity
+            const visited = new Map()
+            const start = `${from[0]},${from[1]}`
+            visited.set(start, { dist: 0, from: null })
+            const q = [{ cell: from, dist: 0 }]
+            let head = 0
+            while (head < q.length) {
+              const { cell, dist } = q[head++]
+              if (dist >= 7) continue
+              const score = nearestGhostDist(cell[0], cell[1]) - dist * 0.1
+              if (score > bestScore) {
+                bestScore = score
+                bestCell = cell
+              }
+              for (const [dx, dy] of DIRS) {
+                const nx = cell[0] + dx
+                const ny = cell[1] + dy
+                const k = `${nx},${ny}`
+                if (walls.has(k) || visited.has(k)) continue
+                if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) continue
+                visited.set(k, { dist: dist + 1, from: cell })
+                q.push({ cell: [nx, ny], dist: dist + 1 })
+              }
+            }
+            if (bestCell && (bestCell[0] !== from[0] || bestCell[1] !== from[1])) {
+              // Reconstruct first step toward bestCell
+              let k = `${bestCell[0]},${bestCell[1]}`
+              let prev = visited.get(k)?.from
+              while (prev && !(prev[0] === from[0] && prev[1] === from[1])) {
+                k = `${prev[0]},${prev[1]}`
+                prev = visited.get(k)?.from
+              }
+              const [nextX, nextY] = k.split(',').map(Number)
+              return [nextX, nextY]
+            }
+          }
+
+          // Otherwise: BFS to nearest dot/pill
+          const foodSet = new Set([...dots, ...pills])
+          if (foodSet.size === 0) return from
+          const path = bfs(from, (c) => foodSet.has(`${c[0]},${c[1]}`))
+          if (path && path.length > 1) return path[1]
+          // Nothing reachable - idle
+          return from
+        }
+
+        function pickGhostDir(ghost) {
+          const from = [ghost.x, ghost.y]
+          // 12% random wrong turn at an intersection to avoid robotic ghosts
+          if (Math.random() < 0.12) {
+            const options = []
+            for (const [dx, dy] of DIRS) {
+              const nx = from[0] + dx
+              const ny = from[1] + dy
+              if (walls.has(`${nx},${ny}`)) continue
+              if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) continue
+              // don't immediately reverse
+              if (dx === -ghost.lastDir[0] && dy === -ghost.lastDir[1]) continue
+              options.push([nx, ny])
+            }
+            if (options.length) return options[Math.floor(Math.random() * options.length)]
+          }
+          // BFS to pac
+          const path = bfs(from, (c) => c[0] === pac.x && c[1] === pac.y)
+          if (path && path.length > 1) return path[1]
+          return from
+        }
+
+        function stepEntity(ent, isPac) {
+          ent.progress += ent.speed
+          if (ent.progress >= 1) {
+            ent.progress = 0
+            ent.x = ent.nx
+            ent.y = ent.ny
+            const target = isPac ? pickPacDir() : pickGhostDir(ent)
+            ent.lastDir = [target[0] - ent.x, target[1] - ent.y]
+            ent.nx = target[0]
+            ent.ny = target[1]
+          }
+        }
+
+        function checkCollisions() {
+          // Pac eats dot
+          const pk = `${pac.x},${pac.y}`
+          if (dots.has(pk)) { dots.delete(pk); eaten++ }
+          if (pills.has(pk)) { pills.delete(pk); eaten++ }
+          if (dots.size + pills.size === 0) {
+            boards++
+            parseMaze()
+            reset()
+            return
+          }
+          // Ghost collision (within 0.6 cell)
+          for (const g of ghosts) {
+            const gx = g.x + (g.nx - g.x) * g.progress
+            const gy = g.y + (g.ny - g.y) * g.progress
+            const px = pac.x + (pac.nx - pac.x) * pac.progress
+            const py = pac.y + (pac.ny - pac.y) * pac.progress
+            const d = Math.hypot(gx - px, gy - py)
+            if (d < 0.55) {
+              caught++
+              flashUntil = performance.now() + 500
+              reset()
+              return
+            }
+          }
+        }
+
+        function drawWalls() {
+          // Draw wall cells as rounded rects with a thin bone outline
+          ctx.lineWidth = 1.2
+          ctx.strokeStyle = 'rgba(236, 225, 210, 0.35)'
+          ctx.fillStyle = 'rgba(196, 136, 77, 0.04)'
+          for (const k of walls) {
+            const [x, y] = k.split(',').map(Number)
+            const pad = 2
+            const rx = x * CELL + pad
+            const ry = y * CELL + pad
+            const s = CELL - pad * 2
+            const r = 4
+            ctx.beginPath()
+            ctx.moveTo(rx + r, ry)
+            ctx.arcTo(rx + s, ry, rx + s, ry + s, r)
+            ctx.arcTo(rx + s, ry + s, rx, ry + s, r)
+            ctx.arcTo(rx, ry + s, rx, ry, r)
+            ctx.arcTo(rx, ry, rx + s, ry, r)
+            ctx.closePath()
+            ctx.fill()
+            ctx.stroke()
+          }
+        }
+
+        function drawDots() {
+          ctx.fillStyle = 'rgba(236, 225, 210, 0.55)'
+          for (const k of dots) {
+            const [x, y] = k.split(',').map(Number)
+            ctx.beginPath()
+            ctx.arc(x * CELL + CELL / 2, y * CELL + CELL / 2, 1.8, 0, Math.PI * 2)
+            ctx.fill()
+          }
+          const pulse = (Math.sin(performance.now() * 0.004) + 1) * 0.5
+          ctx.fillStyle = `rgba(196, 136, 77, ${0.6 + pulse * 0.3})`
+          for (const k of pills) {
+            const [x, y] = k.split(',').map(Number)
+            ctx.beginPath()
+            ctx.arc(x * CELL + CELL / 2, y * CELL + CELL / 2, 4.2 + pulse * 1.4, 0, Math.PI * 2)
+            ctx.fill()
+          }
+        }
+
+        function drawPac() {
+          const px = pac.x + (pac.nx - pac.x) * pac.progress
+          const py = pac.y + (pac.ny - pac.y) * pac.progress
+          const cx = px * CELL + CELL / 2
+          const cy = py * CELL + CELL / 2
+          const r = CELL * 0.36
+          // mouth animation based on progress
+          const mouth = Math.abs(Math.sin(performance.now() * 0.015)) * 0.6 + 0.08
+          // facing angle
+          const dx = pac.nx - pac.x
+          const dy = pac.ny - pac.y
+          const angle = Math.atan2(dy, dx)
+          ctx.fillStyle = '#c4884d'
+          ctx.beginPath()
+          ctx.moveTo(cx, cy)
+          ctx.arc(cx, cy, r, angle + mouth, angle + Math.PI * 2 - mouth)
+          ctx.closePath()
+          ctx.fill()
+          // glow
+          const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 2.6)
+          grd.addColorStop(0, 'rgba(196, 136, 77, 0.22)')
+          grd.addColorStop(1, 'rgba(196, 136, 77, 0)')
+          ctx.fillStyle = grd
+          ctx.fillRect(cx - r * 2.6, cy - r * 2.6, r * 5.2, r * 5.2)
+        }
+
+        function drawGhost(g, tint) {
+          const gx = g.x + (g.nx - g.x) * g.progress
+          const gy = g.y + (g.ny - g.y) * g.progress
+          const cx = gx * CELL + CELL / 2
+          const cy = gy * CELL + CELL / 2
+          const r = CELL * 0.34
+          ctx.fillStyle = tint
+          // body: circle top + rectangle bottom with wavy hem
+          ctx.beginPath()
+          ctx.arc(cx, cy - 1, r, Math.PI, 0)
+          const baseY = cy + r * 0.9
+          ctx.lineTo(cx + r, baseY)
+          // wavy hem
+          const waves = 3
+          for (let i = 0; i < waves; i++) {
+            const x1 = cx + r - ((i + 0.5) * (r * 2)) / waves
+            const x2 = cx + r - ((i + 1) * (r * 2)) / waves
+            ctx.lineTo(x1, baseY - 2)
+            ctx.lineTo(x2, baseY)
+          }
+          ctx.closePath()
+          ctx.fill()
+          // eyes
+          ctx.fillStyle = 'rgba(10, 10, 13, 0.9)'
+          ctx.beginPath()
+          ctx.arc(cx - r * 0.35, cy - r * 0.2, r * 0.18, 0, Math.PI * 2)
+          ctx.arc(cx + r * 0.35, cy - r * 0.2, r * 0.18, 0, Math.PI * 2)
+          ctx.fill()
+        }
+
+        const GHOST_TINTS = [
+          'rgba(236, 225, 210, 0.82)',
+          'rgba(196, 136, 77, 0.72)',
+          'rgba(172, 163, 147, 0.82)',
+        ]
+
+        function draw() {
+          ctx.fillStyle = '#0b0b0f'
+          ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL)
+          drawWalls()
+          drawDots()
+          drawPac()
+          for (let i = 0; i < ghosts.length; i++) drawGhost(ghosts[i], GHOST_TINTS[i % GHOST_TINTS.length])
+
+          if (performance.now() < flashUntil) {
+            ctx.fillStyle = 'rgba(196, 136, 77, 0.18)'
+            ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL)
+          }
+
+          eatenEl.textContent = eaten
+          boardsEl.textContent = boards
+          caughtEl.textContent = caught
+        }
+
+        function loop() {
+          stepEntity(pac, true)
+          for (const g of ghosts) stepEntity(g, false)
+          checkCollisions()
+          draw()
+          requestAnimationFrame(loop)
+        }
+        requestAnimationFrame(loop)
+      })()
+    </script>
+  </body>
+</html>

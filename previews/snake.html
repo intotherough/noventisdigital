@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noventis - snake AI preview</title>
+    <style>
+      :root {
+        --bg: #0a0a0d;
+        --text: #f1ece3;
+        --muted: #aca393;
+        --copper: #c4884d;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .stage {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(900px 500px at 50% 50%, rgba(196, 136, 77, 0.04), transparent 70%),
+          var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas {
+        display: block;
+        background: #0c0c10;
+        border: 1px solid rgba(255, 245, 232, 0.08);
+        border-radius: 6px;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        pointer-events: none;
+        padding: 6vh 2rem 0;
+        text-align: center;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin: 0 0 0.6rem;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 400;
+        font-size: clamp(1.5rem, 3vw, 2.4rem);
+        margin: 0 0 0.6rem;
+      }
+      .hud {
+        position: absolute;
+        bottom: 1.6rem;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 2.2rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(172, 163, 147, 0.7);
+        pointer-events: none;
+      }
+      .hud strong {
+        color: var(--copper);
+        font-weight: 500;
+        letter-spacing: 0.1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <canvas id="snake" width="840" height="540"></canvas>
+      <div class="overlay">
+        <p class="eyebrow">Preview · Snake playing itself</p>
+        <h1>BFS + safety check. No keyboard.</h1>
+      </div>
+      <div class="hud">
+        <span>Length <strong id="len">3</strong></span>
+        <span>Deaths <strong id="deaths">0</strong></span>
+        <span>Best <strong id="best">3</strong></span>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById('snake')
+        const ctx = canvas.getContext('2d')
+        const lenEl = document.getElementById('len')
+        const deathsEl = document.getElementById('deaths')
+        const bestEl = document.getElementById('best')
+        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+        const CELL = 20
+        const COLS = 42
+        const ROWS = 27
+
+        function resize() {
+          canvas.width = COLS * CELL * dpr
+          canvas.height = ROWS * CELL * dpr
+          canvas.style.width = COLS * CELL + 'px'
+          canvas.style.height = ROWS * CELL + 'px'
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        }
+        resize()
+
+        let snake = []
+        let food = null
+        let deaths = 0
+        let best = 3
+        let frame = 0
+        const MOVE_EVERY = 4
+
+        function start() {
+          snake = [[COLS / 2 | 0, ROWS / 2 | 0], [(COLS / 2 | 0) - 1, ROWS / 2 | 0], [(COLS / 2 | 0) - 2, ROWS / 2 | 0]]
+          placeFood()
+        }
+
+        function placeFood() {
+          const body = new Set(snake.map(([x, y]) => `${x},${y}`))
+          while (true) {
+            const x = Math.floor(Math.random() * COLS)
+            const y = Math.floor(Math.random() * ROWS)
+            if (!body.has(`${x},${y}`)) {
+              food = [x, y]
+              return
+            }
+          }
+        }
+
+        const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+
+        function bfs(from, to, blocked) {
+          const key = ([x, y]) => `${x},${y}`
+          const start = key(from)
+          const target = key(to)
+          if (start === target) return [from]
+          const prev = new Map()
+          prev.set(start, null)
+          const q = [from]
+          let head = 0
+          while (head < q.length) {
+            const cur = q[head++]
+            for (const [dx, dy] of DIRS) {
+              const nx = cur[0] + dx
+              const ny = cur[1] + dy
+              if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) continue
+              const k = `${nx},${ny}`
+              if (prev.has(k)) continue
+              if (blocked.has(k) && k !== target) continue
+              prev.set(k, cur)
+              if (k === target) {
+                const path = [[nx, ny]]
+                let p = cur
+                while (p) {
+                  path.unshift(p)
+                  p = prev.get(key(p))
+                }
+                return path
+              }
+              q.push([nx, ny])
+            }
+          }
+          return null
+        }
+
+        function decide() {
+          const head = snake[0]
+          // Body blockers excluding the tail (tail will move out of its cell next step)
+          const bodyNoTail = new Set()
+          for (let i = 0; i < snake.length - 1; i++) bodyNoTail.add(`${snake[i][0]},${snake[i][1]}`)
+
+          const pathFood = bfs(head, food, bodyNoTail)
+          if (pathFood && pathFood.length > 1) {
+            // Simulate one step toward food; confirm the resulting snake can still reach its tail.
+            const candidate = pathFood[1]
+            const ateFood = candidate[0] === food[0] && candidate[1] === food[1]
+            const simSnake = [candidate, ...snake]
+            if (!ateFood) simSnake.pop()
+            const simBody = new Set()
+            for (let i = 1; i < simSnake.length - 1; i++) simBody.add(`${simSnake[i][0]},${simSnake[i][1]}`)
+            const reachTail = bfs(simSnake[0], simSnake[simSnake.length - 1], simBody)
+            if (reachTail) return candidate
+          }
+
+          // Fall back: chase own tail to stall safely
+          const bodyNoHeadNoTail = new Set()
+          for (let i = 1; i < snake.length - 1; i++) bodyNoHeadNoTail.add(`${snake[i][0]},${snake[i][1]}`)
+          const pathTail = bfs(head, snake[snake.length - 1], bodyNoHeadNoTail)
+          if (pathTail && pathTail.length > 1) return pathTail[1]
+
+          // Last resort: any non-suicidal neighbor
+          const bodyAll = new Set()
+          for (let i = 0; i < snake.length - 1; i++) bodyAll.add(`${snake[i][0]},${snake[i][1]}`)
+          for (const [dx, dy] of DIRS) {
+            const nx = head[0] + dx
+            const ny = head[1] + dy
+            if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) continue
+            if (bodyAll.has(`${nx},${ny}`)) continue
+            return [nx, ny]
+          }
+          return null
+        }
+
+        function step() {
+          const next = decide()
+          if (!next) {
+            deaths++
+            start()
+            return
+          }
+          snake.unshift(next)
+          if (next[0] === food[0] && next[1] === food[1]) {
+            placeFood()
+          } else {
+            snake.pop()
+          }
+          if (snake.length > best) best = snake.length
+          if (snake.length >= COLS * ROWS) {
+            // board solved - reset for continuous preview
+            start()
+          }
+        }
+
+        function draw() {
+          // gentle fade to leave a subtle trail
+          ctx.fillStyle = 'rgba(12, 12, 16, 0.55)'
+          ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL)
+
+          // grid dots
+          ctx.fillStyle = 'rgba(236, 225, 210, 0.04)'
+          for (let y = 0; y < ROWS; y++) {
+            for (let x = 0; x < COLS; x++) {
+              ctx.fillRect(x * CELL + CELL / 2 - 0.5, y * CELL + CELL / 2 - 0.5, 1, 1)
+            }
+          }
+
+          // food - pulsing copper
+          if (food) {
+            const pulse = (Math.sin(frame * 0.09) + 1) * 0.5
+            const r = CELL * (0.22 + pulse * 0.12)
+            const cx = food[0] * CELL + CELL / 2
+            const cy = food[1] * CELL + CELL / 2
+            const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 2.4)
+            grd.addColorStop(0, 'rgba(196, 136, 77, 0.85)')
+            grd.addColorStop(1, 'rgba(196, 136, 77, 0)')
+            ctx.fillStyle = grd
+            ctx.beginPath()
+            ctx.arc(cx, cy, r * 2.4, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.fillStyle = 'rgba(236, 225, 210, 0.9)'
+            ctx.beginPath()
+            ctx.arc(cx, cy, r * 0.5, 0, Math.PI * 2)
+            ctx.fill()
+          }
+
+          // snake body - bone with copper gradient toward head
+          for (let i = snake.length - 1; i >= 0; i--) {
+            const [x, y] = snake[i]
+            const t = 1 - i / snake.length
+            const warmth = Math.pow(t, 1.4)
+            const r = Math.round(236 - warmth * 40)
+            const g = Math.round(225 - warmth * 89)
+            const b = Math.round(210 - warmth * 133)
+            const alpha = 0.5 + warmth * 0.4
+            const pad = 1.5
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`
+            roundRect(x * CELL + pad, y * CELL + pad, CELL - pad * 2, CELL - pad * 2, 4)
+            ctx.fill()
+          }
+
+          // eye on head
+          const head = snake[0]
+          if (head) {
+            ctx.fillStyle = 'rgba(10, 10, 13, 0.95)'
+            ctx.beginPath()
+            ctx.arc(head[0] * CELL + CELL / 2, head[1] * CELL + CELL / 2, 1.6, 0, Math.PI * 2)
+            ctx.fill()
+          }
+
+          lenEl.textContent = snake.length
+          deathsEl.textContent = deaths
+          bestEl.textContent = best
+        }
+
+        function roundRect(x, y, w, h, r) {
+          ctx.beginPath()
+          ctx.moveTo(x + r, y)
+          ctx.arcTo(x + w, y, x + w, y + h, r)
+          ctx.arcTo(x + w, y + h, x, y + h, r)
+          ctx.arcTo(x, y + h, x, y, r)
+          ctx.arcTo(x, y, x + w, y, r)
+          ctx.closePath()
+        }
+
+        function loop() {
+          frame++
+          if (frame % MOVE_EVERY === 0) step()
+          draw()
+          requestAnimationFrame(loop)
+        }
+
+        start()
+        requestAnimationFrame(loop)
+      })()
+    </script>
+  </body>
+</html>

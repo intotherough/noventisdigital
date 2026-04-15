@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noventis - morphing glyph preview</title>
+    <style>
+      :root {
+        --bg: #0a0a0d;
+        --text: #f1ece3;
+        --muted: #aca393;
+        --copper: #c4884d;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .stage {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        background:
+          radial-gradient(900px 500px at 50% 45%, rgba(196, 136, 77, 0.04), transparent 70%),
+          var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas {
+        display: block;
+        width: min(80vw, 560px);
+        height: min(80vw, 560px);
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        pointer-events: none;
+        padding: 8vh 2rem 0;
+        text-align: center;
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.24em;
+        font-size: 0.72rem;
+        color: var(--muted);
+        margin: 0 0 0.6rem;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 400;
+        font-size: clamp(1.5rem, 3vw, 2.4rem);
+        margin: 0;
+      }
+      .label {
+        position: absolute;
+        bottom: 18%;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        opacity: 0;
+        transition: opacity 600ms ease;
+        pointer-events: none;
+      }
+      .label.is-visible { opacity: 1; }
+      .legend {
+        position: absolute;
+        bottom: 1.6rem;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.68rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(172, 163, 147, 0.55);
+        pointer-events: none;
+      }
+      svg.probe {
+        position: absolute;
+        width: 0;
+        height: 0;
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <canvas id="glyph" width="560" height="560"></canvas>
+      <div class="overlay">
+        <p class="eyebrow">Preview · Morphing glyph</p>
+        <h1>One mark, many forms.</h1>
+      </div>
+      <div class="label" id="label"></div>
+      <div class="legend">Particles trace each form in turn</div>
+    </div>
+
+    <svg class="probe" xmlns="http://www.w3.org/2000/svg">
+      <path id="probePath" />
+    </svg>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById('glyph')
+        const ctx = canvas.getContext('2d')
+        const labelEl = document.getElementById('label')
+        const probe = document.getElementById('probePath')
+        const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+        function resize() {
+          const rect = canvas.getBoundingClientRect()
+          canvas.width = Math.floor(rect.width * dpr)
+          canvas.height = Math.floor(rect.height * dpr)
+        }
+        resize()
+        window.addEventListener('resize', resize)
+
+        // Each form is defined in a 100x100 design box; we scale to canvas.
+        // All forms produce the same number of sampled points by resampling their
+        // total path length uniformly.
+        const FORMS = [
+          {
+            name: 'Serif N',
+            // Chunky serif N strokes traced as filled shapes' outlines
+            paths: [
+              // Left vertical with serifs
+              "M 18 20 L 18 80 L 30 80 L 30 32 L 70 80 L 82 80 L 82 20 L 70 20 L 70 68 L 30 20 Z",
+            ],
+          },
+          {
+            name: 'Sans lowercase n',
+            paths: [
+              // simplified arch with straight sides
+              "M 22 42 C 22 28, 42 24, 52 32 L 52 78 L 64 78 L 64 32 C 64 18, 34 14, 22 30 L 22 78 L 34 78 L 34 42 Z",
+            ],
+          },
+          {
+            name: 'Bracketed [N]',
+            paths: [
+              // left bracket
+              "M 12 24 L 20 24 L 20 28 L 16 28 L 16 72 L 20 72 L 20 76 L 12 76 Z",
+              // N core
+              "M 32 28 L 32 72 L 38 72 L 38 40 L 58 72 L 64 72 L 64 28 L 58 28 L 58 60 L 38 28 Z",
+              // right bracket
+              "M 76 24 L 84 24 L 84 76 L 76 76 L 76 72 L 80 72 L 80 28 L 76 28 Z",
+            ],
+          },
+          {
+            name: 'arrow n =>',
+            paths: [
+              // n
+              "M 14 42 C 14 30, 28 26, 38 34 L 38 74 L 46 74 L 46 34 C 46 18, 18 18, 14 32 L 14 74 L 22 74 L 22 42 Z",
+              // = (two bars)
+              "M 54 38 L 74 38 L 74 42 L 54 42 Z",
+              "M 54 50 L 74 50 L 74 54 L 54 54 Z",
+              // >
+              "M 80 34 L 94 46 L 80 58 L 80 52 L 88 46 L 80 40 Z",
+            ],
+          },
+          {
+            name: 'Iso N cube',
+            paths: [
+              // front face (rhombus)
+              "M 30 40 L 50 30 L 50 70 L 30 80 Z",
+              // right face
+              "M 50 30 L 70 40 L 70 80 L 50 70 Z",
+              // diagonal N stroke on front face
+              "M 32 44 L 32 74 L 36 74 L 36 52 L 46 70 L 46 34 L 42 34 L 42 58 L 34 44 Z",
+            ],
+          },
+        ]
+
+        const POINT_COUNT = 260
+
+        function sampleCompoundPath(dStrings, n) {
+          // Concatenate subpath lengths and sample uniformly across the total length
+          const subLengths = []
+          let total = 0
+          for (const d of dStrings) {
+            probe.setAttribute('d', d)
+            const len = probe.getTotalLength()
+            subLengths.push(len)
+            total += len
+          }
+          const pts = []
+          for (let i = 0; i < n; i++) {
+            const target = (i / n) * total
+            let cumulative = 0
+            let chosen = 0
+            let local = target
+            for (let k = 0; k < subLengths.length; k++) {
+              if (target <= cumulative + subLengths[k]) {
+                chosen = k
+                local = target - cumulative
+                break
+              }
+              cumulative += subLengths[k]
+            }
+            probe.setAttribute('d', dStrings[chosen])
+            const p = probe.getPointAtLength(local)
+            pts.push([p.x, p.y])
+          }
+          return pts
+        }
+
+        const sampled = FORMS.map((f) => ({
+          name: f.name,
+          points: sampleCompoundPath(f.paths, POINT_COUNT),
+        }))
+
+        // Randomize within-form order slightly so particles don't all march in sync
+        for (const s of sampled) {
+          for (let i = s.points.length - 1; i > 0; i--) {
+            if (Math.random() > 0.7) {
+              const j = Math.floor(Math.random() * (i + 1))
+              const tmp = s.points[i]
+              s.points[i] = s.points[j]
+              s.points[j] = tmp
+            }
+          }
+        }
+
+        const particles = []
+        for (let i = 0; i < POINT_COUNT; i++) {
+          particles.push({
+            x: 50 + (Math.random() - 0.5) * 60,
+            y: 50 + (Math.random() - 0.5) * 60,
+            tx: 0,
+            ty: 0,
+            jitter: Math.random() * Math.PI * 2,
+          })
+        }
+
+        let formIndex = 0
+        function setForm(i) {
+          const form = sampled[i]
+          for (let k = 0; k < particles.length; k++) {
+            particles[k].tx = form.points[k][0]
+            particles[k].ty = form.points[k][1]
+          }
+          labelEl.textContent = form.name
+          labelEl.classList.add('is-visible')
+        }
+        setForm(0)
+
+        let t0 = performance.now()
+        let morphMs = 1400
+        let holdMs = 2200
+        let phase = 'morph'
+        let phaseStart = t0
+
+        function draw(now) {
+          const w = canvas.width
+          const h = canvas.height
+          // background trail
+          ctx.fillStyle = 'rgba(10, 10, 13, 0.22)'
+          ctx.fillRect(0, 0, w, h)
+
+          // map the 0-100 design box to canvas with padding
+          const pad = w * 0.12
+          const scale = (w - pad * 2) / 100
+          const ox = pad
+          const oy = pad + (h - w) / 2
+
+          // update particles
+          for (const p of particles) {
+            p.x += (p.tx - p.x) * 0.09
+            p.y += (p.ty - p.y) * 0.09
+          }
+
+          // draw particles
+          for (const p of particles) {
+            const j = Math.sin(now * 0.002 + p.jitter) * 0.6
+            const px = ox + (p.x + j) * scale
+            const py = oy + (p.y + j) * scale
+            const dist = Math.hypot(p.x - p.tx, p.y - p.ty)
+            const warmth = Math.min(1, dist / 30)
+            const r = Math.round(236 - warmth * 40)
+            const g = Math.round(225 - warmth * 89)
+            const b = Math.round(210 - warmth * 133)
+            ctx.beginPath()
+            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.78)`
+            ctx.arc(px, py, 1.9 * dpr, 0, Math.PI * 2)
+            ctx.fill()
+          }
+
+          // phase transitions
+          if (phase === 'morph' && now - phaseStart > morphMs) {
+            phase = 'hold'
+            phaseStart = now
+          } else if (phase === 'hold' && now - phaseStart > holdMs) {
+            phase = 'morph'
+            phaseStart = now
+            formIndex = (formIndex + 1) % sampled.length
+            labelEl.classList.remove('is-visible')
+            setTimeout(() => setForm(formIndex), 240)
+          }
+
+          requestAnimationFrame(draw)
+        }
+        requestAnimationFrame(draw)
+      })()
+    </script>
+  </body>
+</html>
