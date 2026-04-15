@@ -71,6 +71,19 @@ export type ClientPackSummary = {
   documentCount: number
 }
 
+export type AdminPackRecord = {
+  id: string
+  title: string
+  summary: string
+  status: string
+  updatedAt: string
+  validUntil: string
+  timeline: string
+  notes: string
+  amount: number
+  documents: QuoteAttachment[]
+}
+
 export type AdminClientRecord = {
   id: string
   email: string

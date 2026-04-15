@@ -1,5 +1,6 @@
 import type { AuthError, Session } from '@supabase/supabase-js'
 import type {
+  AdminPackRecord,
   AdminClientRecord,
   AdminUser,
   AuditLogRecord,
@@ -7,6 +8,7 @@ import type {
   CreateClientInput,
   CreateInvoiceInput,
   Invoice,
+  QuoteAttachment,
   ResetClientPasswordInput,
   ToggleInvoiceVisibilityInput,
   UpdateClientInput,
@@ -16,6 +18,7 @@ import type {
 import { hasSupabase, supabase, supabaseUrl } from './supabase'
 
 const CLIENT_UPLOADS_BUCKET = 'client-uploads'
+const CLIENT_DOCUMENTS_BUCKET = 'client-documents'
 
 type ClientUploadRow = {
   id: string
@@ -27,6 +30,26 @@ type ClientUploadRow = {
   content_type: string | null
   notes: string | null
   created_at: string
+}
+
+type QuoteAttachmentRow = {
+  label?: string | null
+  url?: string | null
+  kind?: string | null
+  description?: string | null
+}
+
+type AdminPackRow = {
+  id: string
+  title: string | null
+  summary: string | null
+  status: string | null
+  updated_at: string
+  valid_until: string | null
+  timeline: string | null
+  notes: string | null
+  total_amount: number | null
+  documents: QuoteAttachmentRow[] | null
 }
 
 function mapAdminUploadRow(row: ClientUploadRow): ClientUpload {
@@ -43,6 +66,65 @@ function mapAdminUploadRow(row: ClientUploadRow): ClientUpload {
   }
 }
 
+function normaliseAttachments(documents: QuoteAttachmentRow[] | null | undefined) {
+  if (!Array.isArray(documents)) {
+    return []
+  }
+
+  return documents
+    .map((document): QuoteAttachment => {
+      const kind: QuoteAttachment['kind'] =
+        document.kind === 'pdf' || document.kind === 'doc' || document.kind === 'link'
+          ? document.kind
+          : 'link'
+
+      return {
+        label: String(document.label ?? '').trim(),
+        url: String(document.url ?? '').trim(),
+        kind,
+        description: String(document.description ?? '').trim() || undefined,
+      }
+    })
+    .filter((document) => document.label && document.url)
+}
+
+function mapAdminPackRow(row: AdminPackRow): AdminPackRecord {
+  return {
+    id: row.id,
+    title: row.title ?? 'Untitled pack',
+    summary: row.summary ?? '',
+    status: row.status ?? 'Draft',
+    updatedAt: row.updated_at,
+    validUntil: row.valid_until ?? '',
+    timeline: row.timeline ?? '',
+    notes: row.notes ?? '',
+    amount: Number(row.total_amount ?? 0) || 0,
+    documents: normaliseAttachments(row.documents),
+  }
+}
+
+function parseStorageReference(url: string) {
+  if (!url.startsWith('storage://')) {
+    return null
+  }
+
+  const reference = url.slice('storage://'.length)
+  const slashIndex = reference.indexOf('/')
+
+  if (slashIndex === -1) {
+    return null
+  }
+
+  const bucket = reference.slice(0, slashIndex)
+  const path = reference.slice(slashIndex + 1)
+
+  if (!bucket || !path) {
+    return null
+  }
+
+  return { bucket, path }
+}
+
 type AdminFunctionPayload = {
   ok?: boolean
   error?: string
@@ -50,6 +132,7 @@ type AdminFunctionPayload = {
   clients?: AdminClientRecord[]
   auditLogs?: AuditLogRecord[]
   client?: AdminClientRecord
+  packs?: unknown[]
   invoices?: Invoice[]
   invoice?: Invoice
 }
@@ -291,6 +374,15 @@ export async function listInvoices(): Promise<Invoice[]> {
   return result.invoices ?? []
 }
 
+export async function listClientPacksForUser(userId: string): Promise<AdminPackRecord[]> {
+  const result = await invokeAdminAction<{ ok: true; packs: unknown[] }>(
+    'listClientPacks',
+    { userId },
+  )
+
+  return (result.packs ?? []).map((row) => mapAdminPackRow(row as AdminPackRow))
+}
+
 export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice> {
   const result = await invokeAdminAction<{ ok: true; invoice: Invoice }>(
     'createInvoice',
@@ -344,8 +436,34 @@ export async function downloadInvoicePdfBlob(path: string): Promise<Blob> {
   }
 
   const { data, error } = await supabase.storage
-    .from('client-documents')
+    .from(CLIENT_DOCUMENTS_BUCKET)
     .download(path)
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+export async function downloadPackDocumentBlob(url: string): Promise<Blob> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured.')
+  }
+
+  const storageReference = parseStorageReference(url)
+
+  if (!storageReference) {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Unable to fetch document (${response.status}).`)
+    }
+    return await response.blob()
+  }
+
+  const { data, error } = await supabase.storage
+    .from(storageReference.bucket)
+    .download(storageReference.path)
 
   if (error) {
     throw error

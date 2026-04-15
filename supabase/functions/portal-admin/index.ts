@@ -111,9 +111,21 @@ type QuoteRow = {
   id: string
   auth_user_id: string
   title: string
+  summary?: string | null
   status: string | null
+  valid_until?: string | null
+  timeline?: string | null
+  notes?: string | null
+  total_amount?: number | null
   updated_at: string
-  documents: Array<{ url?: string | null }> | null
+  documents:
+    | Array<{
+        label?: string | null
+        url?: string | null
+        kind?: string | null
+        description?: string | null
+      }>
+    | null
 }
 
 function jsonResponse(payload: unknown, status = 200) {
@@ -368,6 +380,46 @@ async function listClientRecords(adminClient: ReturnType<typeof createAdminClien
         packs: quotesByUser.get(profile.id) ?? [],
       }),
     )
+}
+
+async function listClientPacks(
+  adminClient: ReturnType<typeof createAdminClient>,
+  userId: string,
+) {
+  if (!userId) {
+    throw new Error('A client id is required.')
+  }
+
+  const profile = await getClientProfile(adminClient, userId)
+
+  if (!profile) {
+    throw new Error('That client could not be found.')
+  }
+
+  const { data, error } = await adminClient
+    .from('quotes')
+    .select(
+      'id, auth_user_id, title, summary, status, valid_until, timeline, notes, total_amount, updated_at, documents',
+    )
+    .eq('auth_user_id', userId)
+    .order('updated_at', { ascending: false })
+
+  if (error) {
+    throw error
+  }
+
+  return (data ?? []).map((quote) => ({
+    id: quote.id,
+    title: quote.title ?? 'Untitled pack',
+    summary: quote.summary ?? '',
+    status: quote.status ?? 'Draft',
+    validUntil: quote.valid_until ?? '',
+    timeline: quote.timeline ?? '',
+    notes: quote.notes ?? '',
+    amount: Number(quote.total_amount ?? 0) || 0,
+    updatedAt: quote.updated_at,
+    documents: Array.isArray(quote.documents) ? quote.documents : [],
+  }))
 }
 
 async function listAuditLogRecords(adminClient: ReturnType<typeof createAdminClient>, limit: number) {
@@ -1322,6 +1374,12 @@ Deno.serve(async (request) => {
         const limit = Math.min(Math.max(Number(payload.limit ?? 80), 1), 250)
         const auditLogs = await listAuditLogRecords(adminClient, limit)
         return jsonResponse({ ok: true, auditLogs })
+      }
+
+      case 'listClientPacks': {
+        const userId = String(payload.userId ?? '')
+        const packs = await listClientPacks(adminClient, userId)
+        return jsonResponse({ ok: true, packs })
       }
 
       case 'createClient':

@@ -1,7 +1,11 @@
 import type { DragEvent, FormEvent } from 'react'
-import { useState } from 'react'
-import { formatDateTime } from '../../lib/formatting.ts'
-import type { AdminClientRecord } from '../../types.ts'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  downloadPackDocumentBlob,
+  listClientPacksForUser,
+} from '../../lib/adminService.ts'
+import { formatCurrency, formatDate, formatDateTime } from '../../lib/formatting.ts'
+import type { AdminClientRecord, AdminPackRecord, QuoteAttachment } from '../../types.ts'
 import { ClientInvoicesPanel } from './ClientInvoicesPanel.tsx'
 import type { AdminView } from './types.ts'
 
@@ -67,6 +71,173 @@ export function DocumentsView({
   onNavigateToInvoice,
 }: DocumentsViewProps) {
   const [isDragOver, setIsDragOver] = useState(false)
+  const [packs, setPacks] = useState<AdminPackRecord[]>([])
+  const [packsLoading, setPacksLoading] = useState(false)
+  const [packsError, setPacksError] = useState<string | null>(null)
+  const [activeDocumentKey, setActiveDocumentKey] = useState<string | null>(null)
+  const [activeDocumentUrl, setActiveDocumentUrl] = useState<string | null>(null)
+  const [documentLoadingKey, setDocumentLoadingKey] = useState<string | null>(null)
+
+  const allDocuments = useMemo(
+    () =>
+      packs.flatMap((pack) =>
+        pack.documents.map((document, index) => ({
+          pack,
+          document,
+          key: `${pack.id}:${index}:${document.url}`,
+        })),
+      ),
+    [packs],
+  )
+
+  const activeDocument =
+    allDocuments.find((entry) => entry.key === activeDocumentKey) ?? allDocuments[0] ?? null
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadPacks() {
+      if (!selectedClient) {
+        setPacks([])
+        setPacksError(null)
+        setPacksLoading(false)
+        return
+      }
+
+      setPacksLoading(true)
+      setPacksError(null)
+
+      try {
+        const nextPacks = await listClientPacksForUser(selectedClient.id)
+        if (!cancelled) {
+          setPacks(nextPacks)
+        }
+      } catch (caught) {
+        if (!cancelled) {
+          setPacks([])
+          setPacksError(
+            caught instanceof Error
+              ? caught.message
+              : 'Unable to load client packs right now.',
+          )
+        }
+      } finally {
+        if (!cancelled) {
+          setPacksLoading(false)
+        }
+      }
+    }
+
+    void loadPacks()
+
+    return () => {
+      cancelled = true
+    }
+  }, [selectedClient])
+
+  useEffect(() => {
+    if (!activeDocument && activeDocumentUrl) {
+      URL.revokeObjectURL(activeDocumentUrl)
+      setActiveDocumentUrl(null)
+    }
+  }, [activeDocument, activeDocumentUrl])
+
+  useEffect(() => {
+    if (!activeDocument) {
+      setActiveDocumentKey(null)
+      return
+    }
+
+    setActiveDocumentKey((current) => current ?? activeDocument.key)
+  }, [activeDocument])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadDocumentPreview(entry: {
+      key: string
+      document: QuoteAttachment
+    }) {
+      if (entry.document.kind !== 'pdf') {
+        setActiveDocumentUrl((current) => {
+          if (current) {
+            URL.revokeObjectURL(current)
+          }
+          return null
+        })
+        return
+      }
+
+      setDocumentLoadingKey(entry.key)
+
+      try {
+        const blob = await downloadPackDocumentBlob(entry.document.url)
+        if (cancelled) {
+          return
+        }
+        const nextUrl = URL.createObjectURL(blob)
+        setActiveDocumentUrl((current) => {
+          if (current) {
+            URL.revokeObjectURL(current)
+          }
+          return nextUrl
+        })
+      } catch {
+        if (!cancelled) {
+          setActiveDocumentUrl((current) => {
+            if (current) {
+              URL.revokeObjectURL(current)
+            }
+            return null
+          })
+        }
+      } finally {
+        if (!cancelled) {
+          setDocumentLoadingKey(null)
+        }
+      }
+    }
+
+    if (activeDocument) {
+      void loadDocumentPreview(activeDocument)
+    }
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeDocument])
+
+  useEffect(() => {
+    return () => {
+      if (activeDocumentUrl) {
+        URL.revokeObjectURL(activeDocumentUrl)
+      }
+    }
+  }, [activeDocumentUrl])
+
+  const handleDocumentDownload = async (attachment: QuoteAttachment, fileName: string) => {
+    const downloadKey = `download:${attachment.url}`
+    setDocumentLoadingKey(downloadKey)
+    setPacksError(null)
+
+    try {
+      const blob = await downloadPackDocumentBlob(attachment.url)
+      const url = URL.createObjectURL(blob)
+      const anchor = window.document.createElement('a')
+      anchor.href = url
+      anchor.download = fileName
+      window.document.body.appendChild(anchor)
+      anchor.click()
+      window.document.body.removeChild(anchor)
+      URL.revokeObjectURL(url)
+    } catch (caught) {
+      setPacksError(
+        caught instanceof Error ? caught.message : 'Unable to download this pack file.',
+      )
+    } finally {
+      setDocumentLoadingKey(null)
+    }
+  }
 
   const handleDragOver = (event: DragEvent<HTMLFormElement>) => {
     if (!selectedClient) {
@@ -150,24 +321,127 @@ export function DocumentsView({
               served back to authenticated portal users at runtime.
             </p>
 
-            {selectedClient.packs.length ? (
-              <div className="line-item-grid admin-pack-list">
-                {selectedClient.packs.map((pack) => (
-                  <div className="line-item-card" key={pack.id}>
-                    <div>
-                      <h4>{pack.title}</h4>
-                      <p>{formatDateTime(pack.updatedAt)}</p>
+            {packsError ? <div className="error-banner">{packsError}</div> : null}
+
+            {packsLoading ? (
+              <div className="loading-panel">Loading client packs...</div>
+            ) : packs.length ? (
+              <div className="admin-pack-stack">
+                {packs.map((pack) => (
+                  <section className="line-item-card admin-pack-card" key={pack.id}>
+                    <div className="admin-pack-card-header">
+                      <div>
+                        <h4>{pack.title}</h4>
+                        <p>{formatDateTime(pack.updatedAt)}</p>
+                      </div>
+                      <strong>
+                        {pack.status} · {pack.documents.length} file(s)
+                      </strong>
                     </div>
-                    <strong>
-                      {pack.status} · {pack.documentCount} file(s)
-                    </strong>
-                  </div>
+
+                    <div className="admin-pack-meta">
+                      <span>{formatCurrency(pack.amount)}</span>
+                      <span>{pack.timeline || 'Timeline TBC'}</span>
+                      <span>
+                        {pack.validUntil ? `Valid until ${formatDate(pack.validUntil)}` : 'No expiry'}
+                      </span>
+                    </div>
+
+                    {pack.summary ? <p>{pack.summary}</p> : null}
+
+                    {pack.documents.length ? (
+                      <div className="document-grid admin-pack-document-grid">
+                        {pack.documents.map((document, index) => {
+                          const documentKey = `${pack.id}:${index}:${document.url}`
+                          const loading =
+                            documentLoadingKey === documentKey ||
+                            documentLoadingKey === `download:${document.url}`
+                          const fileName =
+                            document.url.split('/').pop()?.split('?')[0] ||
+                            `${document.label}.pdf`
+
+                          return (
+                            <div className="document-card admin-pack-document-card" key={documentKey}>
+                              <span className="document-badge">{document.kind}</span>
+                              <strong>{document.label}</strong>
+                              {document.description ? <p>{document.description}</p> : null}
+                              <div className="admin-pack-document-actions">
+                                <button
+                                  className="ghost-button"
+                                  disabled={loading}
+                                  onClick={() => setActiveDocumentKey(documentKey)}
+                                  type="button"
+                                >
+                                  {documentLoadingKey === documentKey
+                                    ? 'Opening...'
+                                    : document.kind === 'pdf'
+                                      ? 'Preview'
+                                      : 'Open'}
+                                </button>
+                                <button
+                                  className="ghost-button"
+                                  disabled={loading}
+                                  onClick={() => void handleDocumentDownload(document, fileName)}
+                                  type="button"
+                                >
+                                  {documentLoadingKey === `download:${document.url}`
+                                    ? 'Downloading...'
+                                    : 'Download'}
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="admin-stage-note">No files are attached to this pack yet.</p>
+                    )}
+                  </section>
                 ))}
               </div>
             ) : (
               <div className="empty-state">No packs uploaded for this client yet.</div>
             )}
           </article>
+
+          {activeDocument ? (
+            <article className="detail-card pdf-preview-card">
+              <div className="section-card-heading">
+                <div>
+                  <p className="eyebrow">Pack preview</p>
+                  <h3>{activeDocument.document.label}</h3>
+                </div>
+                {activeDocumentUrl ? (
+                  <a
+                    className="ghost-button"
+                    href={activeDocumentUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    Open in new tab
+                  </a>
+                ) : null}
+              </div>
+
+              {activeDocument.document.description ? (
+                <p>{activeDocument.document.description}</p>
+              ) : null}
+
+              {activeDocument.document.kind === 'pdf' ? (
+                activeDocumentUrl ? (
+                  <div className="pdf-frame-wrap">
+                    <iframe src={activeDocumentUrl} title={activeDocument.document.label} />
+                  </div>
+                ) : (
+                  <div className="loading-panel">Preparing document preview...</div>
+                )
+              ) : (
+                <p className="admin-stage-note">
+                  This attachment is not a PDF preview. Use Open or Download above.
+                </p>
+              )}
+            </article>
+          ) : null}
 
           <form
             className={`detail-card admin-upload-card admin-upload-dropzone ${
