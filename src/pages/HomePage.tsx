@@ -190,6 +190,9 @@ export function HomePage() {
               <Link className="ghost-button" to="/portal">
                 Client portal
               </Link>
+              <Link className="ghost-button" to="/labs">
+                Labs
+              </Link>
             </div>
 
             <div aria-label="Core offer" className="hero-ledger motion-reveal motion-reveal--5">
@@ -454,6 +457,7 @@ export function HomePage() {
             <a href="https://www.linkedin.com/in/jmbyrne/" rel="noreferrer" target="_blank">
               LinkedIn
             </a>
+            <Link to="/labs">Labs</Link>
             <Link to="/privacy">Privacy policy</Link>
             <Link to="/portal">Client portal</Link>
           </div>

@@ -11,6 +11,9 @@ const PortalPage = lazy(() =>
 const PrivacyPage = lazy(() =>
   import('./pages/PrivacyPage').then((module) => ({ default: module.PrivacyPage })),
 )
+const LabsPage = lazy(() =>
+  import('./pages/LabsPage').then((module) => ({ default: module.LabsPage })),
+)
 
 type RouteMeta = {
   title: string
@@ -58,6 +61,14 @@ function updateRouteMetadata(pathname: string) {
               'Privacy policy for Noventis Digital, including how website enquiry data is handled.',
             robots: 'index,follow',
             canonicalPath: '/privacy',
+          }
+      : pathname.startsWith('/labs')
+        ? {
+            title: 'Labs | Noventis Digital',
+            description:
+              'Small interactive experiments in code, AI, and visual algorithms from Noventis Digital.',
+            robots: 'index,follow',
+            canonicalPath: '/labs',
           }
       : {
           title: 'Noventis Digital | Fractional CTO and AI Build Partner',
@@ -148,6 +159,7 @@ function App() {
         <Routes location={location}>
           <Route path="/" element={<HomePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/labs" element={<LabsPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
           <Route path="/portal/*" element={<PortalPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
