@@ -94,40 +94,6 @@ export function AdminSidebar({
         </div>
       </article>
 
-      <article className="detail-card admin-current-client-card">
-        <p className="eyebrow">Current client</p>
-        {selectedClient ? (
-          <>
-            <div className="admin-client-context">
-              <h3>{selectedClient.company}</h3>
-              <p>
-                {selectedClient.name} · {selectedClient.role}
-              </p>
-              <p>{selectedClient.email}</p>
-            </div>
-
-            <div className="admin-rail-actions">
-              <button
-                className="ghost-button"
-                onClick={() => onSelectView('clients')}
-                type="button"
-              >
-                Edit account
-              </button>
-              <button
-                className="ghost-button"
-                onClick={() => onSelectView('documents')}
-                type="button"
-              >
-                Manage packs
-              </button>
-            </div>
-          </>
-        ) : (
-          <p>Select a client from the directory to start editing.</p>
-        )}
-      </article>
-
       <div className="list-card admin-directory-card">
         <div className="list-card-heading">
           <h3>Client directory</h3>
@@ -172,6 +138,40 @@ export function AdminSidebar({
             : 'Tip: drop a PDF onto a client to upload it instantly.'}
         </p>
       </div>
+
+      <article className="detail-card admin-current-client-card">
+        <p className="eyebrow">Current client</p>
+        {selectedClient ? (
+          <>
+            <div className="admin-client-context">
+              <h3>{selectedClient.company}</h3>
+              <p>
+                {selectedClient.name} · {selectedClient.role}
+              </p>
+              <p>{selectedClient.email}</p>
+            </div>
+
+            <div className="admin-rail-actions">
+              <button
+                className="ghost-button"
+                onClick={() => onSelectView('clients')}
+                type="button"
+              >
+                Edit account
+              </button>
+              <button
+                className="ghost-button"
+                onClick={() => onSelectView('documents')}
+                type="button"
+              >
+                Manage packs
+              </button>
+            </div>
+          </>
+        ) : (
+          <p>Select a client from the directory to start editing.</p>
+        )}
+      </article>
     </aside>
   )
 }
