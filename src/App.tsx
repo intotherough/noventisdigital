@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { HomePage } from './pages/HomePage'
 import { AdminPage } from './pages/AdminPage'
 import { PortalPage } from './pages/PortalPage'
+import { PrivacyPage } from './pages/PrivacyPage'
 import {
   getCurrentClient,
   getQuotesForClient,
@@ -53,6 +54,14 @@ function updateRouteMetadata(pathname: string) {
           robots: 'noindex,nofollow',
           canonicalPath: '/portal',
         }
+      : pathname.startsWith('/privacy')
+        ? {
+            title: 'Privacy Policy | Noventis Digital',
+            description:
+              'Privacy policy for Noventis Digital, including how website enquiry data is handled.',
+            robots: 'index,follow',
+            canonicalPath: '/privacy',
+          }
       : {
           title: 'Noventis Digital | Fractional CTO and AI Build Partner',
           description:
@@ -283,6 +292,7 @@ function App() {
       <RouteMetadata />
       <Routes location={location}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/admin/*" element={<AdminPage />} />
         <Route
           path="/portal/*"

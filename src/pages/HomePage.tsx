@@ -1,4 +1,7 @@
+import type { FormEvent } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { submitPublicContactForm } from '../lib/publicSiteService'
 
 const engagements = [
   {
@@ -84,6 +87,46 @@ const introSignals = ['CTO', 'Build', 'AI', 'Audit', 'Consulting', 'Programming'
 const approachSignals = ['Ship', 'Own', 'Stabilise']
 
 export function HomePage() {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [company, setCompany] = useState('')
+  const [message, setMessage] = useState('')
+  const [website, setWebsite] = useState('')
+  const [formStatus, setFormStatus] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [submitPending, setSubmitPending] = useState(false)
+
+  const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setFormStatus(null)
+    setFormError(null)
+    setSubmitPending(true)
+
+    try {
+      await submitPublicContactForm({
+        name,
+        email,
+        company,
+        message,
+        website,
+      })
+      setName('')
+      setEmail('')
+      setCompany('')
+      setMessage('')
+      setWebsite('')
+      setFormStatus('Message sent. I’ll reply from hello@noventisdigital.co.uk.')
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : 'Unable to send your message right now.',
+      )
+    } finally {
+      setSubmitPending(false)
+    }
+  }
+
   return (
     <div className="page-shell">
       <header className="site-header container">
@@ -104,13 +147,13 @@ export function HomePage() {
         <div className="header-actions">
           <a
             className="ghost-button"
-            href="mailto:hello@noventisdigital.co.uk?subject=Noventis%20Digital%20enquiry"
+            href="https://www.linkedin.com/in/jmbyrne/"
+            rel="noreferrer"
+            target="_blank"
           >
-            hello@noventisdigital.co.uk
+            LinkedIn
           </a>
-          <Link className="primary-button" to="/portal">
-            Client portal
-          </Link>
+          <a className="primary-button" href="#contact">Send a note</a>
         </div>
       </header>
 
@@ -176,11 +219,8 @@ export function HomePage() {
             </p>
 
             <div className="hero-actions motion-reveal motion-reveal--4">
-              <a
-                className="primary-button"
-                href="mailto:hello@noventisdigital.co.uk?subject=Book%20a%2030-minute%20call"
-              >
-                Book a 30-minute call
+              <a className="primary-button" href="#contact">
+                Send a note
               </a>
               <Link className="ghost-button" to="/portal">
                 Client portal
@@ -338,30 +378,93 @@ export function HomePage() {
                   ends with a clear next step or an honest &quot;this isn&apos;t for
                   me, here&apos;s who you should talk to instead.&quot;
                 </p>
-                <div className="hero-actions">
+                <p className="closing-trust-line">
+                  Or email{' '}
+                  <a href="mailto:hello@noventisdigital.co.uk">hello@noventisdigital.co.uk</a>{' '}
+                  directly, or see{' '}
                   <a
-                    className="primary-button"
-                    href="mailto:hello@noventisdigital.co.uk?subject=Noventis%20Digital%20enquiry"
+                    href="https://www.linkedin.com/in/jmbyrne/"
+                    rel="noreferrer"
+                    target="_blank"
                   >
-                    hello@noventisdigital.co.uk
+                    LinkedIn
                   </a>
-                  <a
-                    className="ghost-button"
-                    href="mailto:hello@noventisdigital.co.uk?subject=Book%20a%2030-minute%20call"
-                  >
-                    Book a call
-                  </a>
-                </div>
+                  .
+                </p>
               </div>
 
-              <div className="closing-panel">
-                <p className="closing-panel-label">Operating focus</p>
-                <div className="closing-panel-lines">
-                  <span>Audit &amp; Roadmap</span>
-                  <span>Build</span>
-                  <span>Support &amp; Evolve</span>
+              <form className="closing-form" onSubmit={handleContactSubmit}>
+                <div className="closing-form-grid">
+                  <label className="input-group">
+                    <span>Name</span>
+                    <input
+                      className="text-input"
+                      onChange={(event) => setName(event.target.value)}
+                      required
+                      type="text"
+                      value={name}
+                    />
+                  </label>
+
+                  <label className="input-group">
+                    <span>Email</span>
+                    <input
+                      className="text-input"
+                      onChange={(event) => setEmail(event.target.value)}
+                      required
+                      type="email"
+                      value={email}
+                    />
+                  </label>
+
+                  <label className="input-group closing-form-span-2">
+                    <span>Company</span>
+                    <input
+                      className="text-input"
+                      onChange={(event) => setCompany(event.target.value)}
+                      type="text"
+                      value={company}
+                    />
+                  </label>
+
+                  <label className="input-group closing-form-hidden" aria-hidden="true">
+                    <span>Website</span>
+                    <input
+                      autoComplete="off"
+                      className="text-input"
+                      onChange={(event) => setWebsite(event.target.value)}
+                      tabIndex={-1}
+                      type="text"
+                      value={website}
+                    />
+                  </label>
+
+                  <label className="input-group closing-form-span-2">
+                    <span>What do you need help with?</span>
+                    <textarea
+                      className="text-input text-area-input"
+                      onChange={(event) => setMessage(event.target.value)}
+                      required
+                      rows={5}
+                      value={message}
+                    />
+                  </label>
                 </div>
-              </div>
+
+                {formError ? <div className="error-banner">{formError}</div> : null}
+                {formStatus ? <div className="notice-banner">{formStatus}</div> : null}
+
+                <div className="closing-form-actions">
+                  <button className="primary-button" disabled={submitPending} type="submit">
+                    {submitPending ? 'Sending...' : 'Send message'}
+                  </button>
+                  <p className="closing-form-note">
+                    By sending this form, you agree that I can use your details to
+                    respond to your enquiry. See the{' '}
+                    <Link to="/privacy">privacy policy</Link>.
+                  </p>
+                </div>
+              </form>
 
               <div aria-hidden="true" className="closing-wordmark">
                 NOVENTIS
@@ -383,6 +486,10 @@ export function HomePage() {
 
           <div className="footer-links">
             <a href="mailto:hello@noventisdigital.co.uk">hello@noventisdigital.co.uk</a>
+            <a href="https://www.linkedin.com/in/jmbyrne/" rel="noreferrer" target="_blank">
+              LinkedIn
+            </a>
+            <Link to="/privacy">Privacy policy</Link>
             <Link to="/portal">Client portal</Link>
           </div>
         </div>
