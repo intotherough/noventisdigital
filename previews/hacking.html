@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noventis - Terminal Hack</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      html, body {
+        height: 100%;
+        background: #0a0f0a;
+        color: #33ff33;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+        -webkit-font-smoothing: none;
+      }
+
+      .terminal {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* CRT scanline overlay */
+      .terminal::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.15) 0px,
+          rgba(0, 0, 0, 0.15) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      /* Phosphor glow */
+      .terminal::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 40%, rgba(51, 255, 51, 0.04), transparent 70%);
+        pointer-events: none;
+        z-index: 9;
+      }
+
+      .header {
+        margin-bottom: 1.2rem;
+        opacity: 0.7;
+        font-size: 0.82rem;
+        line-height: 1.6;
+      }
+
+      .attempts {
+        margin-bottom: 1rem;
+        font-size: 0.82rem;
+      }
+      .attempts-bar {
+        display: inline-flex;
+        gap: 0.25rem;
+        margin-left: 0.4rem;
+      }
+      .attempts-pip {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: #33ff33;
+        border-radius: 1px;
+      }
+      .attempts-pip.is-spent { background: #0a2a0a; }
+
+      .hex-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 0.8rem;
+        font-size: 0.82rem;
+        line-height: 1.65;
+        margin-bottom: 1.2rem;
+      }
+
+      .hex-row {
+        display: flex;
+        gap: 0;
+      }
+      .hex-addr {
+        color: #1a8a1a;
+        margin-right: 0.7rem;
+        user-select: none;
+      }
+      .hex-chars {
+        display: inline;
+      }
+
+      .hex-char {
+        cursor: default;
+        transition: background 60ms;
+        padding: 0 0.5px;
+      }
+      .hex-char:hover { background: rgba(51, 255, 51, 0.15); }
+      .hex-char.is-word { cursor: pointer; }
+      .hex-char.is-word:hover {
+        background: #33ff33;
+        color: #0a0f0a;
+      }
+      .hex-char.is-selected {
+        background: #33ff33;
+        color: #0a0f0a;
+      }
+      .hex-char.is-correct {
+        background: #33ff33;
+        color: #0a0f0a;
+      }
+      .hex-char.is-wrong {
+        background: #551111;
+        color: #ff4444;
+      }
+
+      .log {
+        border-top: 1px solid #1a3a1a;
+        padding-top: 0.8rem;
+        font-size: 0.82rem;
+        line-height: 1.6;
+        min-height: 6rem;
+      }
+      .log-entry { opacity: 0.85; }
+      .log-entry.is-success { color: #88ff88; font-weight: bold; }
+      .log-entry.is-fail { color: #ff4444; }
+      .log-entry.is-locked { color: #ff4444; font-weight: bold; }
+
+      .result-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 8;
+        background: rgba(10, 15, 10, 0.85);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 400ms ease;
+      }
+      .result-overlay.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .result-box {
+        text-align: center;
+        padding: 2rem;
+      }
+      .result-box h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.8rem;
+        font-weight: normal;
+        letter-spacing: 0.12em;
+      }
+      .result-box p {
+        opacity: 0.7;
+        margin-bottom: 1.4rem;
+        font-size: 0.88rem;
+      }
+      .result-box button {
+        appearance: none;
+        background: none;
+        border: 1px solid #33ff33;
+        color: #33ff33;
+        padding: 0.5rem 1.2rem;
+        font-family: inherit;
+        font-size: 0.82rem;
+        cursor: pointer;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .result-box button:hover {
+        background: #33ff33;
+        color: #0a0f0a;
+      }
+
+      @media (max-width: 600px) {
+        .terminal { padding: 1rem; }
+        .hex-grid {
+          grid-template-columns: 1fr;
+          font-size: 0.72rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="terminal" id="terminal"></div>
+    <div class="result-overlay" id="overlay">
+      <div class="result-box">
+        <h1 id="result-title"></h1>
+        <p id="result-text"></p>
+        <button type="button" id="result-btn">Try again</button>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const WORD_LENGTH = 7
+        const MAX_ATTEMPTS = 4
+        const WORDS_IN_GRID = 16
+        const CHARS_PER_LINE = 16
+        const LINES_PER_COL = 32
+        const TOTAL_CHARS = CHARS_PER_LINE * LINES_PER_COL * 2
+        const MIN_GAP_BETWEEN_WORDS = 3
+
+        const JUNK = '.,;:!@#$%^&*()-_=+[]{}|/<>?~`\'"\\'.split('')
+
+        const WORD_POOL = [
+          'ARCHIVE', 'BRUTEFC', 'COMMAND', 'DECRYPT', 'ENCODER', 'FIREWAL',
+          'GATEWAY', 'HASHING', 'INJCTED', 'KEYWORD', 'LOCKOUT', 'MODULES',
+          'NETWORK', 'OFFLINE', 'PATCHED', 'QUANTUM', 'RESTART', 'SYSTEMS',
+          'TRANSFR', 'UPLOADS', 'VIRTUAL', 'WARNING', 'EXPLOIT', 'YIELDED',
+          'ZIPFILE', 'BACKUPS', 'CONFIGS', 'DISPLAY', 'ENABLED', 'FORMATS',
+          'GHOSTED', 'HOSTILE', 'INDEXED', 'JACKING', 'KICKING', 'LOADING',
+          'MALWARE', 'NESTING', 'OUTPUTS', 'PARSING', 'QUERIES', 'RELAYED',
+          'SCRIPTS', 'TESTING', 'UNLOCKS', 'VERSION', 'WRITING', 'BINDING',
+          'CLUSTER', 'DEBUGGR', 'EXECUTE', 'FLAGGED', 'HOLDING', 'INSTALL',
+        ]
+
+        function pickWords() {
+          const shuffled = [...WORD_POOL].sort(() => Math.random() - 0.5)
+          return shuffled.slice(0, WORDS_IN_GRID)
+        }
+
+        function countMatching(a, b) {
+          let count = 0
+          for (let i = 0; i < a.length; i++) {
+            if (a[i] === b[i]) count++
+          }
+          return count
+        }
+
+        let attempts, answer, words, grid, wordPositions, log
+
+        function initGame() {
+          words = pickWords()
+          answer = words[Math.floor(Math.random() * words.length)]
+          attempts = MAX_ATTEMPTS
+          log = []
+
+          // Build the character grid with words placed at random non-overlapping positions
+          grid = new Array(TOTAL_CHARS)
+          for (let i = 0; i < TOTAL_CHARS; i++) {
+            grid[i] = { char: JUNK[Math.floor(Math.random() * JUNK.length)], wordIdx: -1, posInWord: -1 }
+          }
+
+          wordPositions = []
+          const occupied = new Set()
+
+          for (let w = 0; w < words.length; w++) {
+            let placed = false
+            for (let attempt = 0; attempt < 400; attempt++) {
+              const start = Math.floor(Math.random() * (TOTAL_CHARS - WORD_LENGTH))
+              const lineStart = Math.floor(start / CHARS_PER_LINE) * CHARS_PER_LINE
+              if (start + WORD_LENGTH > lineStart + CHARS_PER_LINE) continue
+              let ok = true
+              for (let i = -MIN_GAP_BETWEEN_WORDS; i < WORD_LENGTH + MIN_GAP_BETWEEN_WORDS; i++) {
+                const ci = start + i
+                if (ci >= 0 && ci < TOTAL_CHARS && occupied.has(ci)) { ok = false; break }
+              }
+              if (!ok) continue
+              for (let i = 0; i < WORD_LENGTH; i++) {
+                grid[start + i] = { char: words[w][i], wordIdx: w, posInWord: i }
+                occupied.add(start + i)
+              }
+              wordPositions.push({ word: words[w], start })
+              placed = true
+              break
+            }
+            if (!placed) {
+              wordPositions.push(null)
+            }
+          }
+
+          render()
+          document.getElementById('overlay').classList.remove('is-visible')
+        }
+
+        function render() {
+          const terminal = document.getElementById('terminal')
+          let html = ''
+
+          html += '<div class="header">'
+          html += 'JOHNCO INDUSTRIES (TM) TERMLINK PROTOCOL<br>'
+          html += 'ENTER PASSWORD NOW<br>'
+          html += '</div>'
+
+          html += '<div class="attempts">'
+          html += `${attempts} ATTEMPT(S) LEFT:`
+          html += '<span class="attempts-bar">'
+          for (let i = 0; i < MAX_ATTEMPTS; i++) {
+            html += `<span class="attempts-pip${i >= attempts ? ' is-spent' : ''}"></span>`
+          }
+          html += '</span></div>'
+
+          // Hex grid: two columns, each LINES_PER_COL lines of CHARS_PER_LINE
+          let baseAddr = 0xF4A0
+          html += '<div class="hex-grid">'
+          for (let col = 0; col < 2; col++) {
+            html += '<div class="hex-col">'
+            for (let row = 0; row < LINES_PER_COL; row++) {
+              const lineIdx = col * LINES_PER_COL + row
+              const addr = baseAddr + lineIdx * CHARS_PER_LINE
+              html += '<div class="hex-row">'
+              html += `<span class="hex-addr">0x${addr.toString(16).toUpperCase()}</span>`
+              html += '<span class="hex-chars">'
+              for (let c = 0; c < CHARS_PER_LINE; c++) {
+                const gi = lineIdx * CHARS_PER_LINE + c
+                const cell = grid[gi]
+                const cls = cell.wordIdx >= 0 ? ' is-word' : ''
+                html += `<span class="hex-char${cls}" data-gi="${gi}" data-word="${cell.wordIdx}">${cell.char}</span>`
+              }
+              html += '</span></div>'
+            }
+            html += '</div>'
+          }
+          html += '</div>'
+
+          html += '<div class="log">'
+          for (const entry of log) {
+            html += `<div class="log-entry ${entry.cls}">${entry.text}</div>`
+          }
+          html += '</div>'
+
+          terminal.innerHTML = html
+
+          // Event delegation for word clicks
+          terminal.onclick = (e) => {
+            const el = e.target
+            if (!el.classList.contains('is-word')) return
+            const wordIdx = parseInt(el.dataset.word, 10)
+            if (wordIdx < 0 || !wordPositions[wordIdx]) return
+            handleGuess(wordPositions[wordIdx].word, wordIdx)
+          }
+
+          // Hover highlight: when hovering a word char, highlight all chars of that word
+          terminal.onmouseover = (e) => {
+            const el = e.target
+            if (!el.classList.contains('is-word')) return
+            const wordIdx = el.dataset.word
+            terminal.querySelectorAll(`.hex-char[data-word="${wordIdx}"]`).forEach(
+              (ch) => ch.classList.add('is-selected')
+            )
+          }
+          terminal.onmouseout = (e) => {
+            const el = e.target
+            if (!el.classList.contains('is-word')) return
+            const wordIdx = el.dataset.word
+            terminal.querySelectorAll(`.hex-char[data-word="${wordIdx}"]`).forEach(
+              (ch) => ch.classList.remove('is-selected')
+            )
+          }
+        }
+
+        function handleGuess(word, wordIdx) {
+          if (attempts <= 0) return
+
+          if (word === answer) {
+            log.push({ text: `> ${word}`, cls: '' })
+            log.push({ text: 'Exact match!', cls: 'is-success' })
+            log.push({ text: 'ENTRY GRANTED.', cls: 'is-success' })
+            render()
+            setTimeout(() => showResult(true), 600)
+            return
+          }
+
+          attempts--
+          const matching = countMatching(word, answer)
+          log.push({ text: `> ${word}`, cls: '' })
+          log.push({ text: `Entry denied. Likeness=${matching}/${WORD_LENGTH}`, cls: '' })
+
+          if (attempts <= 0) {
+            log.push({ text: 'TERMINAL LOCKED.', cls: 'is-locked' })
+            log.push({ text: 'Please contact an administrator.', cls: 'is-locked' })
+            render()
+            setTimeout(() => showResult(false), 800)
+            return
+          }
+
+          render()
+        }
+
+        function showResult(won) {
+          const overlay = document.getElementById('overlay')
+          document.getElementById('result-title').textContent = won ? 'ACCESS GRANTED' : 'TERMINAL LOCKED'
+          document.getElementById('result-text').textContent = won
+            ? `Password was: ${answer}`
+            : `The password was: ${answer}`
+          overlay.classList.add('is-visible')
+        }
+
+        document.getElementById('result-btn').onclick = () => initGame()
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'r' || e.key === 'R') initGame()
+        })
+
+        initGame()
+      })()
+    </script>
+  </body>
+</html>

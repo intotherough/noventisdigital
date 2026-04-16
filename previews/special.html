@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Noventis - S.P.E.C.I.A.L.</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; }
+      html, body {
+        height: 100%;
+        background: #0a0f0a;
+        color: #33ff33;
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+        -webkit-font-smoothing: none;
+      }
+
+      .pip-shell {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 2.5rem 1.5rem;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      /* CRT effect */
+      .pip-shell::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.15) 0px,
+          rgba(0, 0, 0, 0.15) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        pointer-events: none;
+        z-index: 10;
+      }
+      .pip-shell::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 40%, rgba(51, 255, 51, 0.04), transparent 70%);
+        pointer-events: none;
+        z-index: 9;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .header h1 {
+        font-size: 1.6rem;
+        font-weight: normal;
+        letter-spacing: 0.35em;
+        margin-bottom: 0.4rem;
+      }
+      .header p {
+        opacity: 0.55;
+        font-size: 0.72rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .points-left {
+        text-align: center;
+        margin-bottom: 1.8rem;
+        font-size: 0.88rem;
+      }
+      .points-left strong {
+        font-size: 1.4rem;
+        display: block;
+        margin-top: 0.2rem;
+      }
+      .points-left.is-zero strong { color: #88ff88; }
+      .points-left.is-over strong { color: #ff4444; }
+
+      .stat-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-row {
+        display: grid;
+        grid-template-columns: 36px 1fr 40px;
+        gap: 0.8rem;
+        align-items: center;
+        padding: 0.5rem 0.7rem;
+        border: 1px solid #1a3a1a;
+        border-radius: 2px;
+        transition: border-color 120ms ease;
+      }
+      .stat-row:hover { border-color: #33ff33; }
+      .stat-row.is-focused { border-color: #33ff33; background: rgba(51, 255, 51, 0.04); }
+
+      .stat-letter {
+        font-size: 1.5rem;
+        text-align: center;
+        line-height: 1;
+      }
+
+      .stat-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .stat-name {
+        font-size: 0.82rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .stat-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .stat-bar-track {
+        flex: 1;
+        height: 8px;
+        background: #0f1a0f;
+        border: 1px solid #1a3a1a;
+        position: relative;
+        cursor: pointer;
+      }
+      .stat-bar-fill {
+        height: 100%;
+        background: #33ff33;
+        transition: width 80ms ease;
+      }
+
+      .stat-btn {
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        background: none;
+        border: 1px solid #1a3a1a;
+        color: #33ff33;
+        font-family: inherit;
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+      .stat-btn:hover {
+        background: #33ff33;
+        color: #0a0f0a;
+        border-color: #33ff33;
+      }
+      .stat-btn:disabled {
+        opacity: 0.25;
+        cursor: default;
+        background: none;
+        color: #33ff33;
+      }
+
+      .stat-value {
+        font-size: 1.3rem;
+        text-align: center;
+        min-width: 1.6ch;
+      }
+
+      .stat-desc {
+        font-size: 0.68rem;
+        opacity: 0.5;
+        min-height: 1.1em;
+      }
+
+      .vault-card {
+        border: 1px solid #1a3a1a;
+        padding: 1.2rem;
+        text-align: center;
+        margin-bottom: 1.4rem;
+      }
+      .vault-card h2 {
+        font-weight: normal;
+        font-size: 0.82rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 0.8rem;
+        opacity: 0.7;
+      }
+      .vault-card .archetype {
+        font-size: 1.3rem;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+      }
+      .vault-card .archetype-desc {
+        font-size: 0.78rem;
+        opacity: 0.65;
+        max-width: 48ch;
+        margin: 0 auto;
+        line-height: 1.5;
+      }
+
+      .reset-row {
+        text-align: center;
+      }
+      .reset-btn {
+        appearance: none;
+        background: none;
+        border: 1px solid #1a3a1a;
+        color: #33ff33;
+        padding: 0.45rem 1rem;
+        font-family: inherit;
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .reset-btn:hover {
+        background: #33ff33;
+        color: #0a0f0a;
+        border-color: #33ff33;
+      }
+
+      @media (max-width: 500px) {
+        .pip-shell { padding: 1.2rem 0.8rem; }
+        .stat-row { grid-template-columns: 28px 1fr 32px; gap: 0.5rem; padding: 0.4rem 0.5rem; }
+        .stat-letter { font-size: 1.2rem; }
+        .stat-name { font-size: 0.72rem; }
+        .stat-value { font-size: 1rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pip-shell">
+      <div class="header">
+        <h1>S.P.E.C.I.A.L.</h1>
+        <p>Noventis-Tec Consulting Aptitude Assessment</p>
+      </div>
+      <div class="points-left" id="points-left">
+        Points remaining
+        <strong id="points-value">21</strong>
+      </div>
+      <ul class="stat-list" id="stat-list"></ul>
+      <div class="vault-card" id="archetype-card">
+        <h2>Consulting archetype</h2>
+        <div class="archetype" id="archetype-name">---</div>
+        <div class="archetype-desc" id="archetype-desc">Distribute your 21 points across the stats above.</div>
+      </div>
+      <div class="reset-row">
+        <button type="button" class="reset-btn" id="reset-btn">Reset</button>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const TOTAL_POINTS = 21
+        const MIN_STAT = 1
+        const MAX_STAT = 10
+
+        const STATS = [
+          {
+            letter: 'S',
+            name: 'Strategy',
+            descs: [
+              '', 'Reactive', 'Hesitant', 'Cautious', 'Considered',
+              'Clear-eyed', 'Sharp', 'Visionary', 'Masterful', 'Prescient', 'Oracle',
+            ],
+          },
+          {
+            letter: 'P',
+            name: 'Programming',
+            descs: [
+              '', 'Copy-paste', 'Stack Overflow', 'Junior', 'Competent',
+              'Solid', 'Fluent', 'Architect', 'Polyglot', 'Compiler-whisperer', 'One with the machine',
+            ],
+          },
+          {
+            letter: 'E',
+            name: 'Engineering',
+            descs: [
+              '', 'It works on my machine', 'Duct tape', 'Functional', 'Reliable',
+              'Battle-tested', 'Robust', 'Industrial', 'Bulletproof', 'Over-engineered (compliment)', 'Infrastructure is invisible',
+            ],
+          },
+          {
+            letter: 'C',
+            name: 'Consulting',
+            descs: [
+              '', 'Awkward silence', 'Nodding', 'Empathetic', 'Perceptive',
+              'Trusted', 'Advisor', 'Confidant', 'Boardroom fluent', 'First call in a crisis', 'Therapist with invoices',
+            ],
+          },
+          {
+            letter: 'I',
+            name: 'Infrastructure',
+            descs: [
+              '', 'What is CI?', 'Manual deploys', 'Scripted', 'Pipelined',
+              'Monitored', 'Observable', 'Self-healing', 'Immutable', 'Chaos-tested', 'The plumbing IS the product',
+            ],
+          },
+          {
+            letter: 'A',
+            name: 'Automation',
+            descs: [
+              '', 'Ctrl+C Ctrl+V', 'Bash alias', 'Cron job', 'Scheduled',
+              'Event-driven', 'Orchestrated', 'Self-documenting', 'AI-augmented', 'Fully autonomous', 'Machines build machines',
+            ],
+          },
+          {
+            letter: 'L',
+            name: 'Leadership',
+            descs: [
+              '', 'Reluctant', 'By example', 'Encouraging', 'Respected',
+              'Trusted lead', 'Mentor', 'Servant leader', 'Culture-shaper', 'Inspires loyalty', 'They follow you into the wasteland',
+            ],
+          },
+        ]
+
+        const ARCHETYPES = [
+          { test: (s) => s[0] >= 8, name: 'The Strategist', desc: 'Sees three moves ahead. Clients hire you for judgment, not code.' },
+          { test: (s) => s[1] >= 8, name: 'The Hacker', desc: 'Ships fast, breaks things on purpose, fixes them faster. Code is your first language.' },
+          { test: (s) => s[2] >= 8, name: 'The Engineer', desc: 'If it builds, it ships. If it ships, it scales. No shortcuts.' },
+          { test: (s) => s[3] >= 8, name: 'The Advisor', desc: 'More valuable in the room than at the keyboard. Translates complexity into decisions.' },
+          { test: (s) => s[4] >= 8, name: 'The Plumber', desc: 'Nobody sees your work and that is the highest compliment. The pipes just work.' },
+          { test: (s) => s[5] >= 8, name: 'The Automator', desc: 'Why do it twice when a machine could do it forever? Your laziness is a feature.' },
+          { test: (s) => s[6] >= 8, name: 'The Captain', desc: 'Teams trust you. Stakeholders trust you. You carry the hard conversations so others can build.' },
+          { test: (s) => s[1] >= 6 && s[5] >= 6, name: 'The AI Native', desc: 'Writes code that writes code. The line between you and the model is blurring and you like it.' },
+          { test: (s) => s[0] >= 6 && s[3] >= 6, name: 'Fractional CTO', desc: 'Strategy, judgment, and delivery rolled into one. The reason this site exists.' },
+          { test: (s) => s[2] >= 6 && s[4] >= 6, name: 'Platform Engineer', desc: 'Build the thing that builds the thing. Reliability is a feature, not a checkbox.' },
+          { test: (s) => s[3] >= 5 && s[6] >= 5, name: 'The Bridge', desc: 'Half translator, half leader. You close the gap between technical and commercial.' },
+          { test: (s) => {
+              const avg = s.reduce((a, b) => a + b, 0) / s.length
+              return s.every(v => Math.abs(v - avg) <= 1.5)
+            }, name: 'The Generalist', desc: 'No spikes, no gaps. You are the Swiss Army knife nobody expected to need this badly.' },
+        ]
+
+        const DEFAULT_ARCHETYPE = { name: 'Undecided', desc: 'Distribute your 21 points to reveal your archetype.' }
+
+        const values = STATS.map(() => MIN_STAT)
+
+        function pointsSpent() {
+          return values.reduce((a, b) => a + b, 0)
+        }
+
+        function getArchetype() {
+          const spent = pointsSpent()
+          if (spent < TOTAL_POINTS) return DEFAULT_ARCHETYPE
+          for (const arch of ARCHETYPES) {
+            if (arch.test(values)) return arch
+          }
+          return { name: 'The Wildcard', desc: 'No archetype fits. You are something new. Noventis-Tec has no file on you.' }
+        }
+
+        function render() {
+          const remaining = TOTAL_POINTS - pointsSpent()
+          const pointsEl = document.getElementById('points-left')
+          document.getElementById('points-value').textContent = remaining
+          pointsEl.className = 'points-left' + (remaining === 0 ? ' is-zero' : remaining < 0 ? ' is-over' : '')
+
+          const list = document.getElementById('stat-list')
+          list.innerHTML = ''
+
+          for (let i = 0; i < STATS.length; i++) {
+            const stat = STATS[i]
+            const val = values[i]
+            const li = document.createElement('li')
+            li.className = 'stat-row'
+
+            li.innerHTML = `
+              <span class="stat-letter">${stat.letter}</span>
+              <div class="stat-body">
+                <div class="stat-controls">
+                  <button type="button" class="stat-btn" data-idx="${i}" data-dir="-1" ${val <= MIN_STAT ? 'disabled' : ''}>-</button>
+                  <div class="stat-bar-track" data-idx="${i}">
+                    <div class="stat-bar-fill" style="width: ${(val / MAX_STAT) * 100}%"></div>
+                  </div>
+                  <button type="button" class="stat-btn" data-idx="${i}" data-dir="1" ${val >= MAX_STAT || remaining <= 0 ? 'disabled' : ''}>+</button>
+                </div>
+                <div class="stat-name">${stat.name} <span class="stat-desc">${stat.descs[val] || ''}</span></div>
+              </div>
+              <span class="stat-value">${val}</span>
+            `
+            list.appendChild(li)
+          }
+
+          const arch = getArchetype()
+          document.getElementById('archetype-name').textContent = arch.name
+          document.getElementById('archetype-desc').textContent = arch.desc
+        }
+
+        document.getElementById('stat-list').addEventListener('click', (e) => {
+          const btn = e.target.closest('.stat-btn')
+          if (!btn || btn.disabled) return
+          const idx = parseInt(btn.dataset.idx, 10)
+          const dir = parseInt(btn.dataset.dir, 10)
+          const newVal = values[idx] + dir
+          if (newVal < MIN_STAT || newVal > MAX_STAT) return
+          if (dir > 0 && pointsSpent() >= TOTAL_POINTS) return
+          values[idx] = newVal
+          render()
+        })
+
+        document.getElementById('stat-list').addEventListener('click', (e) => {
+          const track = e.target.closest('.stat-bar-track')
+          if (!track) return
+          const idx = parseInt(track.dataset.idx, 10)
+          const rect = track.getBoundingClientRect()
+          const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+          const targetVal = Math.round(ratio * (MAX_STAT - MIN_STAT)) + MIN_STAT
+          const diff = targetVal - values[idx]
+          const remaining = TOTAL_POINTS - pointsSpent()
+          if (diff > 0 && diff > remaining) {
+            values[idx] = values[idx] + remaining
+          } else {
+            values[idx] = targetVal
+          }
+          render()
+        })
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+          for (let i = 0; i < values.length; i++) values[i] = MIN_STAT
+          render()
+        })
+
+        render()
+      })()
+    </script>
+  </body>
+</html>
