@@ -945,10 +945,6 @@ async function generateAndStoreInvoicePdf(
   adminClient: ReturnType<typeof createAdminClient>,
   invoice: ReturnType<typeof serialiseInvoice>,
 ): Promise<string | null> {
-  if (!invoice.authUserId) {
-    return null
-  }
-
   const pdfBytes = await buildInvoicePdf({
     invoiceNumber: invoice.invoiceNumber,
     clientName: invoice.clientName,
@@ -965,7 +961,8 @@ async function generateAndStoreInvoicePdf(
     terms: invoice.terms,
   })
 
-  const path = `invoices/${invoice.authUserId}/invoice-${invoice.invoiceNumber}.pdf`
+  const folder = invoice.authUserId ?? 'standalone'
+  const path = `invoices/${folder}/invoice-${invoice.invoiceNumber}.pdf`
 
   const upload = await adminClient.storage
     .from('client-documents')
