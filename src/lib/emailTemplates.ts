@@ -315,6 +315,8 @@ export type InvoiceEmailVars = {
   bank: string
   sortCode: string
   accountNumber: string
+  bic: string
+  iban: string
 }
 
 export function renderInvoiceEmail(vars: InvoiceEmailVars): RenderedEmail {
@@ -332,6 +334,8 @@ Account name:   ${vars.accountName}
 Bank:           ${vars.bank}
 Sort code:      ${vars.sortCode}
 Account number: ${vars.accountNumber}
+BIC:            ${vars.bic}
+IBAN:           ${vars.iban}
 
 Please quote ${vars.invoiceNumber} as the reference when paying.
 
@@ -350,6 +354,8 @@ ${paragraph(`Issued: ${vars.issueDateFormatted}<br />Due: <strong style="color:#
   <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Bank</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.bank}</strong></td></tr>
   <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Sort code</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.sortCode}</strong></td></tr>
   <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Account number</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.accountNumber}</strong></td></tr>
+  <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">BIC</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.bic}</strong></td></tr>
+  <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">IBAN</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.iban}</strong></td></tr>
   <tr><td style="padding:4px 0;color:rgba(241,231,216,0.55);font-size:13px;">Reference</td><td style="padding:4px 0;font-size:13px;"><strong style="color:#ece1d2;">${vars.invoiceNumber}</strong></td></tr>
 </table>
 ${paragraph(`Please quote ${mono(vars.invoiceNumber)} as the reference when paying.`)}
@@ -449,10 +455,12 @@ export const sampleTemplates: Array<{
         totalFormatted: '£1,200',
         issueDateFormatted: '14 April 2026',
         dueDateFormatted: '28 April 2026',
-        accountName: 'JM BYRNE',
+        accountName: 'BYRNE JM',
         bank: 'NatWest',
         sortCode: '54-21-50',
         accountNumber: '37479903',
+        bic: 'NWBKGB2L',
+        iban: 'GB58 NWBK 5421 5037 4799 03',
       }),
   },
 ]

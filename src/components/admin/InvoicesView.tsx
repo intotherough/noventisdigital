@@ -25,10 +25,12 @@ const SENDER = {
 }
 
 const PAYMENT = {
-  accountName: 'JM BYRNE',
+  accountName: 'BYRNE JM',
   bank: 'NatWest',
   sortCode: '54-21-50',
   accountNumber: '37479903',
+  bic: 'NWBKGB2L',
+  iban: 'GB58 NWBK 5421 5037 4799 03',
 }
 
 const DEFAULT_TERMS = 'Payment due within 14 days of invoice date.'
@@ -822,6 +824,14 @@ function InvoiceDetail({
             <div>
               <span>Account number</span>
               <strong>{PAYMENT.accountNumber}</strong>
+            </div>
+            <div>
+              <span>BIC</span>
+              <strong>{PAYMENT.bic}</strong>
+            </div>
+            <div>
+              <span>IBAN</span>
+              <strong>{PAYMENT.iban}</strong>
             </div>
             <div>
               <span>Reference</span>

@@ -37,10 +37,12 @@ const SENDER = {
 }
 
 const PAYMENT = {
-  accountName: 'JM BYRNE',
+  accountName: 'BYRNE JM',
   bank: 'NatWest',
   sortCode: '54-21-50',
   accountNumber: '37479903',
+  bic: 'NWBKGB2L',
+  iban: 'GB58 NWBK 5421 5037 4799 03',
 }
 
 const PAGE_WIDTH = 595.28 // A4 in points (72dpi)
@@ -417,6 +419,8 @@ export async function buildInvoicePdf(input: InvoicePdfInput): Promise<Uint8Arra
   drawPaymentRow('Bank', PAYMENT.bank)
   drawPaymentRow('Sort code', PAYMENT.sortCode)
   drawPaymentRow('Account number', PAYMENT.accountNumber)
+  drawPaymentRow('BIC', PAYMENT.bic)
+  drawPaymentRow('IBAN', PAYMENT.iban)
   drawPaymentRow('Reference', input.invoiceNumber)
 
   // Footer

@@ -91,10 +91,12 @@ function formatInvoiceCurrency(amount: number, currency: string) {
 }
 
 const PAYMENT_DETAILS = {
-  accountName: 'JM BYRNE',
+  accountName: 'BYRNE JM',
   bank: 'NatWest',
   sortCode: '54-21-50',
   accountNumber: '37479903',
+  bic: 'NWBKGB2L',
+  iban: 'GB58 NWBK 5421 5037 4799 03',
 }
 
 type ClientProfileRow = {
@@ -1244,6 +1246,8 @@ async function handleSendInvoice(
     bank: PAYMENT_DETAILS.bank,
     sortCode: PAYMENT_DETAILS.sortCode,
     accountNumber: PAYMENT_DETAILS.accountNumber,
+    bic: PAYMENT_DETAILS.bic,
+    iban: PAYMENT_DETAILS.iban,
   })
 
   const result = await sendEmail({
